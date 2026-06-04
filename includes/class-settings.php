@@ -127,6 +127,7 @@ final class Shyft_Dashboard_Settings {
 		self::add_field( 'shyft_dashboard_logo_url', __( 'Dashboard-Logo', 'shyft-dashboard' ), 'render_logo_field', 'shyft_dashboard_main' );
 		self::add_field( 'shyft_dashboard_matomo_token', __( 'Matomo API-Token (optional)', 'shyft-dashboard' ), 'render_matomo_token_field', 'shyft_dashboard_matomo' );
 		self::add_field( 'shyft_dashboard_github_token', __( 'GitHub-Zugriffstoken', 'shyft-dashboard' ), 'render_github_token_field', 'shyft_dashboard_updates' );
+		self::add_field( 'shyft_dashboard_update_check', __( 'Update-Prüfung', 'shyft-dashboard' ), 'render_update_check_field', 'shyft_dashboard_updates' );
 	}
 
 	/**
@@ -248,7 +249,101 @@ final class Shyft_Dashboard_Settings {
 		<p>
 			<?php esc_html_e( 'Alternativ (empfohlen für alle Kundenseiten): Token in wp-config.php setzen – siehe Hinweis beim Feld unten. Niemals im Plugin-Code oder in Git speichern.', 'shyft-dashboard' ); ?>
 		</p>
+		<p>
+			<?php esc_html_e( 'Der Link „Auf Updates prüfen“ steht unter Plugins in der Zeile „SHYFT Dashboard“ (nicht bei WordPress-Core-Updates).', 'shyft-dashboard' ); ?>
+		</p>
 		<?php
+	}
+
+	/**
+	 * Renders update diagnostics and a manual check button.
+	 *
+	 * @param array<string, string> $args Field arguments.
+	 */
+	public static function render_update_check_field( array $args ): void {
+		unset( $args );
+
+		$plugin_slug   = Shyft_Dashboard_Updater::get_plugin_slug();
+		$expected_slug = 'shyft-dashboard';
+		$check_url     = admin_url( 'admin-post.php?action=shyft_dashboard_check_updates' );
+		$check_url     = wp_nonce_url( $check_url, 'shyft_dashboard_check_updates' );
+		$puc_url       = Shyft_Dashboard_Updater::get_manual_check_url();
+		$has_vendor    = is_readable( SHYFT_DASHBOARD_PATH . 'vendor/plugin-update-checker/plugin-update-checker.php' );
+		$has_token     = '' !== self::get_github_token();
+		?>
+		<table class="widefat" style="max-width:640px;margin-bottom:12px;">
+			<tbody>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Installiert', 'shyft-dashboard' ); ?></th>
+					<td><code><?php echo esc_html( SHYFT_DASHBOARD_VERSION ); ?></code></td>
+				</tr>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Plugin-Ordner', 'shyft-dashboard' ); ?></th>
+					<td>
+						<code><?php echo esc_html( $plugin_slug ); ?></code>
+						<?php if ( $expected_slug !== $plugin_slug ) : ?>
+							<span style="color:#b32d2e;">
+								<?php
+								printf(
+									/* translators: %s: expected folder name */
+									esc_html__( ' (sollte „%s“ heißen)', 'shyft-dashboard' ),
+									esc_html( $expected_slug )
+								);
+								?>
+							</span>
+						<?php endif; ?>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Update-Checker', 'shyft-dashboard' ); ?></th>
+					<td><?php echo $has_vendor ? '✓' : '✗'; ?></td>
+				</tr>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'GitHub-Token', 'shyft-dashboard' ); ?></th>
+					<td><?php echo $has_token ? esc_html__( 'gesetzt', 'shyft-dashboard' ) : esc_html__( 'fehlt', 'shyft-dashboard' ); ?></td>
+				</tr>
+			</tbody>
+		</table>
+
+		<p>
+			<a href="<?php echo esc_url( $check_url ); ?>" class="button button-secondary">
+				<?php esc_html_e( 'GitHub-Verbindung & Update jetzt prüfen', 'shyft-dashboard' ); ?>
+			</a>
+			<?php if ( '' !== $puc_url ) : ?>
+				<a href="<?php echo esc_url( $puc_url ); ?>" class="button button-link">
+					<?php esc_html_e( 'Auf Updates prüfen (Plugins-Seite)', 'shyft-dashboard' ); ?>
+				</a>
+			<?php endif; ?>
+		</p>
+
+		<?php
+		if ( isset( $_GET['shyft_update_checked'] ) ) {
+			$github = Shyft_Dashboard_Updater::test_github_connection();
+			$status = Shyft_Dashboard_Updater::get_last_check_status();
+			?>
+			<div class="notice notice-<?php echo $github['ok'] ? 'success' : 'error'; ?> inline" style="margin-top:12px;">
+				<p>
+					<strong><?php esc_html_e( 'GitHub:', 'shyft-dashboard' ); ?></strong>
+					<?php echo esc_html( $github['message'] ); ?>
+					<?php if ( ! empty( $github['version'] ) ) : ?>
+						<?php
+						printf(
+							/* translators: %s: latest release version on GitHub */
+							esc_html__( ' Neueste Version: %s', 'shyft-dashboard' ),
+							esc_html( $github['version'] )
+						);
+						?>
+					<?php endif; ?>
+				</p>
+				<?php if ( is_array( $status ) ) : ?>
+					<p>
+						<strong><?php esc_html_e( 'Updater:', 'shyft-dashboard' ); ?></strong>
+						<?php echo esc_html( (string) $status['message'] ); ?>
+					</p>
+				<?php endif; ?>
+			</div>
+			<?php
+		}
 	}
 
 	/**

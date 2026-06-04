@@ -1,26 +1,42 @@
-# Erstellt bei jedem Tag v* ein GitHub Release inkl. installierbarem ZIP.
-name: Create Release
+# Bei Versionsänderung in shyft-dashboard.php: Tag + GitHub Release + ZIP in einem Schritt.
+name: Publish Release
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - main
 
 permissions:
   contents: write
 
 jobs:
-  release:
+  publish:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
-      - name: Read version from tag
+      - name: Detect version bump
         id: version
-        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+        run: |
+          NEW=$(grep -m1 'Version:' shyft-dashboard.php | sed -E 's/.*Version:[[:space:]]*//' | tr -d '\r')
+          OLD=$(git show HEAD~1:shyft-dashboard.php 2>/dev/null | grep -m1 'Version:' | sed -E 's/.*Version:[[:space:]]*//' | tr -d '\r' || true)
+
+          echo "new=$NEW" >> "$GITHUB_OUTPUT"
+          echo "old=$OLD" >> "$GITHUB_OUTPUT"
+
+          if [ -n "$NEW" ] && [ "$NEW" != "$OLD" ]; then
+            echo "release=true" >> "$GITHUB_OUTPUT"
+            echo "Version bump: ${OLD:-none} -> $NEW"
+          else
+            echo "release=false" >> "$GITHUB_OUTPUT"
+            echo "No version bump, skipping release."
+          fi
 
       - name: Build plugin ZIP
+        if: steps.version.outputs.release == 'true'
         run: |
           PLUGIN_SLUG="shyft-dashboard"
           BUILD_DIR="build/${PLUGIN_SLUG}"
@@ -35,8 +51,11 @@ jobs:
           zip -r "../${PLUGIN_SLUG}.zip" "${PLUGIN_SLUG}"
 
       - name: Publish GitHub Release
+        if: steps.version.outputs.release == 'true'
         uses: softprops/action-gh-release@v2
         with:
-          name: ${{ steps.version.outputs.version }}
+          tag_name: v${{ steps.version.outputs.new }}
+          name: ${{ steps.version.outputs.new }}
           files: shyft-dashboard.zip
           generate_release_notes: true
+          make_latest: true
