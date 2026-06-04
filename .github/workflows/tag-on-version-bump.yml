@@ -1,0 +1,56 @@
+# Legt automatisch den Tag vX.Y.Z an, wenn sich die Version in shyft-dashboard.php ändert.
+name: Tag on Version Bump
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Detect version change
+        id: bump
+        run: |
+          NEW=$(grep -m1 'Version:' shyft-dashboard.php | sed -E 's/.*Version:[[:space:]]*//' | tr -d '\r')
+          OLD=$(git show HEAD~1:shyft-dashboard.php 2>/dev/null | grep -m1 'Version:' | sed -E 's/.*Version:[[:space:]]*//' | tr -d '\r' || true)
+
+          if [ -z "$NEW" ]; then
+            echo "No version found in shyft-dashboard.php"
+            exit 1
+          fi
+
+          echo "new=$NEW" >> "$GITHUB_OUTPUT"
+          echo "old=$OLD" >> "$GITHUB_OUTPUT"
+
+          if [ "$NEW" = "$OLD" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Version unchanged ($NEW), skipping tag."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "Version changed: ${OLD:-none} -> $NEW"
+          fi
+
+      - name: Create and push tag
+        if: steps.bump.outputs.changed == 'true'
+        run: |
+          TAG="v${{ steps.bump.outputs.new }}"
+
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists, skipping."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG" -m "Release $TAG"
+          git push origin "$TAG"

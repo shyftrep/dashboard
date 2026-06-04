@@ -1,0 +1,42 @@
+# Erstellt bei jedem Tag v* ein GitHub Release inkl. installierbarem ZIP.
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read version from tag
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Build plugin ZIP
+        run: |
+          PLUGIN_SLUG="shyft-dashboard"
+          BUILD_DIR="build/${PLUGIN_SLUG}"
+          mkdir -p "${BUILD_DIR}"
+          rsync -a \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='build' \
+            --exclude='.gitignore' \
+            ./ "${BUILD_DIR}/"
+          cd build
+          zip -r "../${PLUGIN_SLUG}.zip" "${PLUGIN_SLUG}"
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ steps.version.outputs.version }}
+          files: shyft-dashboard.zip
+          generate_release_notes: true
