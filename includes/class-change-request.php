@@ -196,14 +196,7 @@ final class Shyft_Dashboard_Change_Request {
 			$subject
 		);
 
-		$attachment_note = '';
-		if ( ! empty( $upload['file'] ) && ! empty( $upload['url'] ) ) {
-			$attachment_note = sprintf(
-				"\n%s: %s\n",
-				__( 'Anhang', 'shyft-dashboard' ),
-				(string) $upload['url']
-			);
-		}
+		$attachment_note = self::format_attachment_links_for_email( $upload );
 
 		$body = sprintf(
 			"%s\n\n%s: %s\n%s: %s\n%s: %s\n\n%s:\n%s%s",
@@ -219,14 +212,49 @@ final class Shyft_Dashboard_Change_Request {
 			$attachment_note
 		);
 
-		$headers     = array( 'Content-Type: text/plain; charset=UTF-8' );
-		$attachments = array();
+		$headers = array( 'Content-Type: text/plain; charset=UTF-8' );
 
-		if ( ! empty( $upload['file'] ) && file_exists( (string) $upload['file'] ) ) {
-			$attachments[] = (string) $upload['file'];
+		return (bool) wp_mail( $to, $email_subject, $body, $headers );
+	}
+
+	/**
+	 * Plain-text block with media library links (no email attachments).
+	 *
+	 * @param array<string, mixed>|null $upload Uploaded file data.
+	 */
+	private static function format_attachment_links_for_email( ?array $upload ): string {
+		if ( empty( $upload['attachment_id'] ) ) {
+			return '';
 		}
 
-		return (bool) wp_mail( $to, $email_subject, $body, $headers, $attachments );
+		$attachment_id = (int) $upload['attachment_id'];
+		$file_url        = wp_get_attachment_url( $attachment_id );
+		$edit_link       = get_edit_post_link( $attachment_id, 'raw' );
+		$file_path       = get_attached_file( $attachment_id );
+		$filename        = is_string( $file_path ) ? basename( $file_path ) : '';
+
+		if ( ! is_string( $file_url ) || '' === $file_url ) {
+			return '';
+		}
+
+		$lines = array(
+			'',
+			__( 'Anhang (Mediathek)', 'shyft-dashboard' ) . ':',
+		);
+
+		if ( '' !== $filename ) {
+			$lines[] = __( 'Dateiname', 'shyft-dashboard' ) . ': ' . $filename;
+		}
+
+		$lines[] = __( 'Link zur Datei', 'shyft-dashboard' ) . ': ' . $file_url;
+
+		if ( is_string( $edit_link ) && '' !== $edit_link ) {
+			$lines[] = __( 'Link in der Mediathek', 'shyft-dashboard' ) . ': ' . $edit_link;
+		}
+
+		$lines[] = '';
+
+		return implode( "\n", $lines );
 	}
 
 	/**
@@ -276,39 +304,30 @@ final class Shyft_Dashboard_Change_Request {
 			);
 		}
 
-		$upload = wp_handle_upload(
-			$file,
+		$attachment_id = media_handle_upload(
+			'shyft_attachment',
+			0,
+			array(
+				'post_title' => sanitize_file_name( pathinfo( $file['name'], PATHINFO_FILENAME ) ),
+			),
 			array(
 				'test_form' => false,
 				'mimes'     => self::ALLOWED_MIME_TYPES,
 			)
 		);
 
-		if ( isset( $upload['error'] ) ) {
-			return new WP_Error( 'shyft_upload_failed', sanitize_text_field( (string) $upload['error'] ) );
-		}
-
-		$attachment_id = wp_insert_attachment(
-			array(
-				'post_mime_type' => $upload['type'],
-				'post_title'     => sanitize_file_name( pathinfo( $file['name'], PATHINFO_FILENAME ) ),
-				'post_content'   => '',
-				'post_status'    => 'inherit',
-			),
-			$upload['file']
-		);
-
 		if ( is_wp_error( $attachment_id ) ) {
 			return $attachment_id;
 		}
 
-		$metadata = wp_generate_attachment_metadata( $attachment_id, $upload['file'] );
-		wp_update_attachment_metadata( $attachment_id, $metadata );
+		$file_path = get_attached_file( $attachment_id );
 
-		$upload['attachment_id'] = (int) $attachment_id;
-		$upload['url']           = wp_get_attachment_url( $attachment_id ) ?: '';
-
-		return $upload;
+		return array(
+			'attachment_id' => (int) $attachment_id,
+			'file'          => is_string( $file_path ) ? $file_path : '',
+			'url'           => wp_get_attachment_url( $attachment_id ) ?: '',
+			'type'          => get_post_mime_type( $attachment_id ) ?: '',
+		);
 	}
 
 	/**
