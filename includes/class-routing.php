@@ -331,14 +331,14 @@ final class Shyft_Dashboard_Routing {
 	}
 
 	/**
-	 * Redirects dashboard users (Kunde, Redakteur) after login – not administrators.
+	 * Redirects Kunde, Redakteur and administrators to the dashboard after login.
 	 *
 	 * @param string           $redirect_to           Redirect destination.
 	 * @param string           $requested_redirect_to Requested redirect.
 	 * @param WP_User|WP_Error $user                  User object or error.
 	 */
 	public static function login_redirect( string $redirect_to, string $requested_redirect_to, $user ): string {
-		if ( $user instanceof WP_User && Shyft_Dashboard_Roles::uses_dashboard( $user ) ) {
+		if ( $user instanceof WP_User && Shyft_Dashboard_Warmup::is_eligible_for_warmup( $user ) ) {
 			return Shyft_Dashboard_Warmup::get_dashboard_entry_url( $user );
 		}
 
