@@ -90,8 +90,12 @@ final class Shyft_Dashboard {
 	 * Plugin activation callback.
 	 */
 	public function activate(): void {
+		update_option( Shyft_Dashboard_Upgrade::PENDING_OPTION, '1', false );
+		delete_option( Shyft_Dashboard_Upgrade::VERSION_OPTION );
+
 		Shyft_Dashboard_Upgrade::run();
 		update_option( Shyft_Dashboard_Upgrade::VERSION_OPTION, SHYFT_DASHBOARD_VERSION, false );
+		delete_option( Shyft_Dashboard_Upgrade::PENDING_OPTION );
 	}
 
 	/**

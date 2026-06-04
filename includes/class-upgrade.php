@@ -17,12 +17,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 final class Shyft_Dashboard_Upgrade {
 
 	public const VERSION_OPTION = 'shyft_dashboard_installed_version';
+	public const PENDING_OPTION = 'shyft_dashboard_pending_upgrade';
 
 	/**
 	 * Registers upgrade hooks.
 	 */
 	public static function register(): void {
-		add_action( 'plugins_loaded', array( self::class, 'maybe_run' ), 1 );
+		add_action( 'init', array( self::class, 'maybe_run' ), 99 );
 		add_action( 'upgrader_process_complete', array( self::class, 'on_upgrader_complete' ), 10, 2 );
 	}
 
@@ -30,16 +31,19 @@ final class Shyft_Dashboard_Upgrade {
 	 * Runs pending upgrade tasks when the plugin version changed.
 	 */
 	public static function maybe_run(): void {
-		if ( self::get_stored_version() === SHYFT_DASHBOARD_VERSION ) {
+		$pending = (bool) get_option( self::PENDING_OPTION, false );
+
+		if ( ! $pending && self::get_stored_version() === SHYFT_DASHBOARD_VERSION ) {
 			return;
 		}
 
 		self::run();
 		self::store_version();
+		delete_option( self::PENDING_OPTION );
 	}
 
 	/**
-	 * Runs upgrade tasks immediately after this plugin was updated via WordPress.
+	 * Schedules upgrade tasks immediately after this plugin was updated via WordPress.
 	 *
 	 * @param WP_Upgrader $upgrader Upgrader instance.
 	 * @param array       $options  Upgrade context.
@@ -57,8 +61,12 @@ final class Shyft_Dashboard_Upgrade {
 			return;
 		}
 
-		self::run();
-		self::store_version();
+		update_option( self::PENDING_OPTION, '1', false );
+
+		// Falls der Upgrader noch vor init läuft, direkt ausführen.
+		if ( did_action( 'init' ) ) {
+			self::maybe_run();
+		}
 	}
 
 	/**
@@ -67,7 +75,6 @@ final class Shyft_Dashboard_Upgrade {
 	public static function run(): void {
 		Shyft_Dashboard_Roles::create_role();
 		Shyft_Dashboard_Routing::add_rewrite_rules();
-		Shyft_Dashboard_Change_Request::register_post_type();
 		flush_rewrite_rules( false );
 
 		update_option( 'shyft_dashboard_rewrite_version', SHYFT_DASHBOARD_VERSION, false );
