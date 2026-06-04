@@ -18,7 +18,8 @@ final class Shyft_Dashboard_Updater {
 
 	public const GITHUB_REPO_URL = 'https://github.com/shyftrep/dashboard/';
 
-	private const STATUS_TRANSIENT = 'shyft_dashboard_update_check_status';
+	private const STATUS_TRANSIENT  = 'shyft_dashboard_update_check_status';
+	private const RELEASE_TRANSIENT = 'shyft_dashboard_github_release';
 
 	/** @var \YahnisElsts\PluginUpdateChecker\v5p7\Plugin\UpdateChecker|null */
 	private static $update_checker = null;
@@ -28,6 +29,7 @@ final class Shyft_Dashboard_Updater {
 	 */
 	public static function register(): void {
 		add_action( 'plugins_loaded', array( self::class, 'init' ), 20 );
+		add_filter( 'site_transient_update_plugins', array( self::class, 'inject_update_transient' ) );
 		add_action( 'admin_post_shyft_dashboard_check_updates', array( self::class, 'handle_manual_check_request' ) );
 	}
 
@@ -55,14 +57,78 @@ final class Shyft_Dashboard_Updater {
 			$slug
 		);
 
+		self::$update_checker->setCheckPeriod( 3 );
+
 		$token = Shyft_Dashboard_Settings::get_github_token();
 
 		if ( '' !== $token ) {
 			self::$update_checker->setAuthentication( trim( $token ) );
 		}
 
-		$vcs = self::$update_checker->getVcsApi();
-		$vcs->enableReleaseAssets( '/\.zip$/i' );
+		// Release-ZIP von GitHub Actions (Ordner shyft-dashboard/ im Archiv).
+		self::$update_checker->getVcsApi()->enableReleaseAssets( '/shyft-dashboard\.zip$/i' );
+	}
+
+	/**
+	 * Ensures WordPress shows updates even when PUC state is stale (GitHub API fallback).
+	 *
+	 * @param mixed $transient Update plugins transient.
+	 * @return mixed
+	 */
+	public static function inject_update_transient( $transient ) {
+		if ( ! is_object( $transient ) ) {
+			$transient = new stdClass();
+		}
+
+		if ( ! isset( $transient->response ) || ! is_array( $transient->response ) ) {
+			$transient->response = array();
+		}
+
+		$plugin_file    = plugin_basename( SHYFT_DASHBOARD_FILE );
+		$release        = self::get_latest_release();
+		$remote_version = is_array( $release ) ? (string) ( $release['version'] ?? '' ) : '';
+
+		if ( '' === $remote_version || version_compare( $remote_version, SHYFT_DASHBOARD_VERSION, '<=' ) ) {
+			return $transient;
+		}
+
+		if ( isset( $transient->response[ $plugin_file ] ) ) {
+			return $transient;
+		}
+
+		$package = is_array( $release ) ? (string) ( $release['package'] ?? '' ) : '';
+
+		if ( '' === $package ) {
+			return $transient;
+		}
+
+		$transient->response[ $plugin_file ] = (object) array(
+			'id'            => 'github.com/shyftrep/dashboard',
+			'slug'          => self::get_plugin_slug(),
+			'plugin'        => $plugin_file,
+			'new_version'   => $remote_version,
+			'url'           => self::GITHUB_REPO_URL,
+			'package'       => $package,
+			'icons'         => array(),
+			'banners'       => array(),
+			'banners_rtl'   => array(),
+			'tested'        => '',
+			'requires_php'  => '8.1',
+			'compatibility' => new stdClass(),
+		);
+
+		return $transient;
+	}
+
+	/**
+	 * Clears WordPress plugin update cache.
+	 */
+	public static function clear_update_cache(): void {
+		delete_site_transient( 'update_plugins' );
+
+		if ( null !== self::$update_checker ) {
+			self::$update_checker->resetUpdateState();
+		}
 	}
 
 	/**
@@ -95,12 +161,18 @@ final class Shyft_Dashboard_Updater {
 	}
 
 	/**
-	 * Tests GitHub API access to the latest release.
+	 * Fetches and caches the latest GitHub release.
 	 *
-	 * @return array{ok: bool, message: string, version: string}
+	 * @return array{version: string, package: string, tag: string}|null
 	 */
-	public static function test_github_connection(): array {
-		$url = 'https://api.github.com/repos/shyftrep/dashboard/releases/latest';
+	public static function get_latest_release(): ?array {
+		$cached = get_transient( self::RELEASE_TRANSIENT );
+
+		if ( is_array( $cached ) && ! empty( $cached['version'] ) ) {
+			return $cached;
+		}
+
+		$url  = 'https://api.github.com/repos/shyftrep/dashboard/releases/latest';
 		$args = array(
 			'timeout' => 15,
 			'headers' => array(
@@ -118,50 +190,80 @@ final class Shyft_Dashboard_Updater {
 		$response = wp_remote_get( $url, $args );
 
 		if ( is_wp_error( $response ) ) {
-			return array(
-				'ok'      => false,
-				'message' => $response->get_error_message(),
-				'version' => '',
-			);
+			return null;
 		}
 
 		$code = (int) wp_remote_retrieve_response_code( $response );
 		$body = json_decode( (string) wp_remote_retrieve_body( $response ), true );
 
-		if ( 404 === $code ) {
-			$message = empty( $token )
-				? __( 'Kein Release gefunden. Prüfe GitHub Actions und ob Tag vX.Y.Z veröffentlicht wurde.', 'shyft-dashboard' )
-				: __( 'Kein Release gefunden. Prüfe Repository-Zugriff und Release-Tags.', 'shyft-dashboard' );
+		if ( $code < 200 || $code >= 300 || ! is_array( $body ) ) {
+			return null;
+		}
 
+		$tag     = (string) ( $body['tag_name'] ?? '' );
+		$version = ltrim( $tag, 'v' );
+		$package = '';
+
+		if ( ! empty( $body['assets'] ) && is_array( $body['assets'] ) ) {
+			foreach ( $body['assets'] as $asset ) {
+				if ( ! is_array( $asset ) ) {
+					continue;
+				}
+
+				$name = (string) ( $asset['name'] ?? '' );
+
+				if ( 'shyft-dashboard.zip' === $name ) {
+					$package = (string) ( $asset['browser_download_url'] ?? $asset['url'] ?? '' );
+					break;
+				}
+			}
+		}
+
+		if ( '' === $package && ! empty( $body['zipball_url'] ) ) {
+			$package = (string) $body['zipball_url'];
+		}
+
+		if ( '' === $version || '' === $package ) {
+			return null;
+		}
+
+		$data = array(
+			'version' => $version,
+			'package' => $package,
+			'tag'     => $tag,
+		);
+
+		set_transient( self::RELEASE_TRANSIENT, $data, 15 * MINUTE_IN_SECONDS );
+
+		return $data;
+	}
+
+	/**
+	 * Tests GitHub API access to the latest release.
+	 *
+	 * @return array{ok: bool, message: string, version: string}
+	 */
+	public static function test_github_connection(): array {
+		$release = self::get_latest_release();
+
+		if ( null === $release ) {
+			delete_transient( self::RELEASE_TRANSIENT );
+
+			$release = self::get_latest_release();
+		}
+
+		if ( null === $release ) {
 			return array(
 				'ok'      => false,
-				'message' => $message,
+				'message' => __( 'Kein Release gefunden. Prüfe GitHub Actions und ob Tag vX.Y.Z veröffentlicht wurde.', 'shyft-dashboard' ),
 				'version' => '',
 			);
 		}
-
-		if ( $code < 200 || $code >= 300 ) {
-			$api_message = is_array( $body ) && ! empty( $body['message'] )
-				? (string) $body['message']
-				: sprintf(
-					/* translators: %d: HTTP status code */
-					__( 'GitHub API Fehler (HTTP %d).', 'shyft-dashboard' ),
-					$code
-				);
-
-			return array(
-				'ok'      => false,
-				'message' => $api_message,
-				'version' => '',
-			);
-		}
-
-		$tag = is_array( $body ) && ! empty( $body['tag_name'] ) ? (string) $body['tag_name'] : '';
 
 		return array(
 			'ok'      => true,
 			'message' => __( 'Verbindung zu GitHub erfolgreich.', 'shyft-dashboard' ),
-			'version' => ltrim( $tag, 'v' ),
+			'version' => (string) $release['version'],
 		);
 	}
 
@@ -171,75 +273,44 @@ final class Shyft_Dashboard_Updater {
 	 * @return array{ok: bool, message: string, remote_version: string}
 	 */
 	public static function run_update_check(): array {
-		if ( null === self::$update_checker ) {
-			return array(
-				'ok'             => false,
-				'message'        => __( 'Update-Checker nicht geladen (vendor/ fehlt?). Bitte Plugin neu installieren.', 'shyft-dashboard' ),
-				'remote_version' => '',
-			);
+		self::clear_update_cache();
+		delete_transient( self::RELEASE_TRANSIENT );
+
+		$release        = self::get_latest_release();
+		$remote_version = is_array( $release ) ? (string) ( $release['version'] ?? '' ) : '';
+
+		if ( null !== self::$update_checker ) {
+			self::$update_checker->checkForUpdates();
 		}
 
-		$update = self::$update_checker->checkForUpdates();
-		$errors = self::$update_checker->getLastRequestApiErrors();
+		wp_update_plugins();
 
-		if ( null !== $update && ! empty( $update->version ) ) {
+		if ( '' !== $remote_version && version_compare( $remote_version, SHYFT_DASHBOARD_VERSION, '>' ) ) {
 			$result = array(
 				'ok'             => true,
 				'message'        => sprintf(
 					/* translators: 1: remote version, 2: installed version */
-					__( 'Update verfügbar: %1$s (installiert: %2$s).', 'shyft-dashboard' ),
-					(string) $update->version,
+					__( 'Update verfügbar: %1$s (installiert: %2$s). Unter „Plugins“ sollte es jetzt sichtbar sein.', 'shyft-dashboard' ),
+					$remote_version,
 					SHYFT_DASHBOARD_VERSION
 				),
-				'remote_version' => (string) $update->version,
+				'remote_version' => $remote_version,
 			);
 			set_transient( self::STATUS_TRANSIENT, $result, 5 * MINUTE_IN_SECONDS );
 
 			return $result;
 		}
 
-		if ( ! empty( $errors ) ) {
-			$wp_error = $errors[0]['error'] ?? null;
-			$message  = $wp_error instanceof WP_Error
-				? $wp_error->get_error_message()
-				: __( 'Unbekannter Fehler bei der Update-Prüfung.', 'shyft-dashboard' );
-
-			$result = array(
-				'ok'             => false,
-				'message'        => $message,
-				'remote_version' => '',
-			);
-			set_transient( self::STATUS_TRANSIENT, $result, 5 * MINUTE_IN_SECONDS );
-
-			return $result;
-		}
-
-		$github = self::test_github_connection();
-		$remote = $github['version'] ?? '';
-
-		if ( '' !== $remote && version_compare( $remote, SHYFT_DASHBOARD_VERSION, '>' ) ) {
-			$result = array(
-				'ok'             => true,
-				'message'        => sprintf(
-					/* translators: 1: remote version, 2: installed version */
-					__( 'Neuere Version auf GitHub: %1$s (installiert: %2$s). Seite „Plugins“ neu laden.', 'shyft-dashboard' ),
-					$remote,
-					SHYFT_DASHBOARD_VERSION
-				),
-				'remote_version' => $remote,
-			);
-		} else {
-			$result = array(
-				'ok'             => true,
-				'message'        => sprintf(
-					/* translators: %s: installed version */
-					__( 'Kein neues Update. Installiert: %s.', 'shyft-dashboard' ),
-					SHYFT_DASHBOARD_VERSION
-				),
-				'remote_version' => $remote,
-			);
-		}
-
+		$result = array(
+			'ok'             => true,
+			'message'        => sprintf(
+				/* translators: 1: github version, 2: installed version */
+				__( 'Kein neues Update. GitHub: %1$s, installiert: %2$s.', 'shyft-dashboard' ),
+				$remote_version ?: '—',
+				SHYFT_DASHBOARD_VERSION
+			),
+			'remote_version' => $remote_version,
+		);
 		set_transient( self::STATUS_TRANSIENT, $result, 5 * MINUTE_IN_SECONDS );
 
 		return $result;

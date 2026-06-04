@@ -251,7 +251,7 @@ final class Shyft_Dashboard_Settings {
 			<?php esc_html_e( 'Nur bei einem privaten Repository einen Token in includes/github-token.php oder in den Einstellungen hinterlegen.', 'shyft-dashboard' ); ?>
 		</p>
 		<p>
-			<?php esc_html_e( 'Der Link „Auf Updates prüfen“ steht unter Plugins in der Zeile „SHYFT Dashboard“ (nicht bei WordPress-Core-Updates).', 'shyft-dashboard' ); ?>
+			<?php esc_html_e( 'Unter Plugins → Zeile „SHYFT Dashboard“ → „Auf Updates prüfen“, oder den Button „GitHub-Verbindung & Update jetzt prüfen“ unten.', 'shyft-dashboard' ); ?>
 		</p>
 		<?php
 	}
