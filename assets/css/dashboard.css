@@ -1,6 +1,5 @@
 /**
- * SHYFT Dashboard – isolated stylesheet (light theme).
- * Design tokens sourced from https://shyft.rocks
+ * SHYFT Dashboard – brand palette: slate #7789AB, black #000000, lime #C7F022.
  */
 
 :root {
@@ -10,88 +9,106 @@
 	--shyft-radius-lg: 16px;
 	--shyft-max-width: 1280px;
 	--shyft-spacing: 24px;
-	--shyft-header-bg: #171C19;
-	--shyft-header-border: rgba(255, 255, 255, 0.08);
+	--shyft-brand-lime: #C7F022;
+	--shyft-brand-black: #000000;
+	--shyft-brand-slate: #7789AB;
+	--shyft-header-bg: #000000;
+	--shyft-header-border: rgba(199, 240, 34, 0.22);
 	--shyft-header-text: #FFFFFF;
-	--shyft-header-text-muted: #A3ADA7;
+	--shyft-header-text-muted: rgba(255, 255, 255, 0.72);
 }
 
 [data-theme="light"] {
-	--shyft-bg: #F4F6F8;
-	--shyft-bg-deep: #ECEFF3;
-	--shyft-bg-glow: rgba(19, 23, 21, 0.05);
+	--shyft-bg: #7789AB;
+	--shyft-bg-deep: #6b7fa3;
+	--shyft-bg-glow: rgba(199, 240, 34, 0.18);
 	--shyft-surface: #FFFFFF;
 	--shyft-card: #FFFFFF;
-	--shyft-card-alt: #F9FAFB;
-	--shyft-border: rgba(15, 23, 42, 0.08);
-	--shyft-border-strong: rgba(15, 23, 42, 0.12);
-	--shyft-text: #0F172A;
-	--shyft-text-soft: #334155;
-	--shyft-text-muted: #64748B;
-	--shyft-accent: #131715;
-	--shyft-accent-hover: #1E2421;
-	--shyft-accent-soft: rgba(19, 23, 21, 0.08);
-	--shyft-accent-fade: rgba(19, 23, 21, 0.35);
+	--shyft-card-alt: #f4f6fa;
+	--shyft-border: rgba(0, 0, 0, 0.1);
+	--shyft-border-strong: rgba(0, 0, 0, 0.16);
+	--shyft-text: #000000;
+	--shyft-text-soft: rgba(0, 0, 0, 0.88);
+	--shyft-text-muted: rgba(0, 0, 0, 0.58);
+	--shyft-card-text: #000000;
+	--shyft-accent: #C7F022;
+	--shyft-accent-hover: #b3dc12;
+	--shyft-accent-soft: rgba(199, 240, 34, 0.28);
+	--shyft-accent-fade: rgba(199, 240, 34, 0.55);
 	--shyft-metric-line-gradient: linear-gradient(
 		90deg,
-		#B8EBD8 0%,
-		#9DD9F5 35%,
-		#C5B8F0 68%,
-		#F5C6D6 100%
+		#C7F022 0%,
+		#000000 35%,
+		#7789AB 68%,
+		#C7F022 100%
 	);
-	--shyft-activity-line-default: #9AD9C8;
-	--shyft-activity-line-update: #8ECDF5;
-	--shyft-activity-line-security: #9AD9C8;
-	--shyft-activity-line-backup: #F5D78E;
-	--shyft-activity-line-performance: #C9BEF2;
-	--shyft-status-success: #5DCAA5;
-	--shyft-status-success-soft: rgba(93, 202, 165, 0.18);
-	--shyft-error: #DC2626;
-	--shyft-error-soft: rgba(220, 38, 38, 0.1);
-	--shyft-success: #131715;
-	--shyft-success-soft: rgba(19, 23, 21, 0.08);
-	--shyft-warning: #D97706;
-	--shyft-warning-soft: rgba(217, 119, 6, 0.1);
-	--shyft-on-accent: #FFFFFF;
-	--shyft-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
-	--shyft-shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 8px 24px rgba(15, 23, 42, 0.06);
-	--shyft-chart-grid: rgba(15, 23, 42, 0.06);
-	--shyft-footer-bg: rgba(255, 255, 255, 0.72);
-	--shyft-input-hover-border: rgba(15, 23, 42, 0.18);
-	--shyft-tooltip-bg: #0F172A;
-	--shyft-tooltip-text: #E2E8F0;
+	--shyft-activity-line-default: #C7F022;
+	--shyft-activity-line-update: #7789AB;
+	--shyft-activity-line-security: #b3dc12;
+	--shyft-activity-line-backup: #000000;
+	--shyft-activity-line-performance: #8e9eb8;
+	--shyft-status-success: #000000;
+	--shyft-status-success-soft: rgba(199, 240, 34, 0.35);
+	--shyft-error: #8b1a1a;
+	--shyft-error-soft: rgba(139, 26, 26, 0.12);
+	--shyft-success: #000000;
+	--shyft-success-soft: rgba(199, 240, 34, 0.28);
+	--shyft-warning: #4a3d00;
+	--shyft-warning-soft: rgba(199, 240, 34, 0.22);
+	--shyft-on-accent: #000000;
+	--shyft-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.08);
+	--shyft-shadow: 0 2px 8px rgba(0, 0, 0, 0.1), 0 12px 28px rgba(0, 0, 0, 0.12);
+	--shyft-chart-grid: rgba(0, 0, 0, 0.08);
+	--shyft-footer-bg: rgba(255, 255, 255, 0.55);
+	--shyft-input-hover-border: rgba(0, 0, 0, 0.28);
+	--shyft-tooltip-bg: #000000;
+	--shyft-tooltip-text: #FFFFFF;
 }
 
 [data-theme="dark"] {
-	--shyft-bg: #171C19;
-	--shyft-bg-deep: #0C1210;
-	--shyft-bg-glow: rgba(255, 85, 85, 0.05);
-	--shyft-surface: #1E2421;
-	--shyft-card: #1E2421;
-	--shyft-card-alt: #171E19;
-	--shyft-border: rgba(255, 255, 255, 0.08);
-	--shyft-border-strong: rgba(255, 255, 255, 0.12);
+	--shyft-bg: #000000;
+	--shyft-bg-deep: #000000;
+	--shyft-bg-glow: rgba(199, 240, 34, 0.12);
+	--shyft-surface: #7789AB;
+	--shyft-card: #7789AB;
+	--shyft-card-alt: #6b7fa3;
+	--shyft-border: rgba(0, 0, 0, 0.14);
+	--shyft-border-strong: rgba(0, 0, 0, 0.22);
 	--shyft-text: #FFFFFF;
-	--shyft-text-soft: #F2F4F3;
-	--shyft-text-muted: #798174;
-	--shyft-accent: #FF5555;
-	--shyft-accent-hover: #E84444;
-	--shyft-accent-soft: rgba(255, 85, 85, 0.12);
-	--shyft-accent-fade: rgba(255, 85, 85, 0.35);
-	--shyft-error: #FF5555;
-	--shyft-error-soft: rgba(255, 85, 85, 0.1);
-	--shyft-success: #5DCAA5;
-	--shyft-success-soft: rgba(93, 202, 165, 0.12);
-	--shyft-warning: #EFB23A;
-	--shyft-warning-soft: rgba(239, 178, 58, 0.12);
-	--shyft-shadow-sm: none;
-	--shyft-shadow: none;
-	--shyft-chart-grid: rgba(255, 255, 255, 0.06);
-	--shyft-footer-bg: rgba(12, 18, 16, 0.85);
-	--shyft-input-hover-border: rgba(255, 255, 255, 0.18);
-	--shyft-tooltip-bg: #1E2421;
-	--shyft-tooltip-text: #F2F4F3;
-	--shyft-on-accent: #FFFFFF;
+	--shyft-text-soft: rgba(255, 255, 255, 0.9);
+	--shyft-text-muted: rgba(255, 255, 255, 0.65);
+	--shyft-card-text: #000000;
+	--shyft-accent: #C7F022;
+	--shyft-accent-hover: #b3dc12;
+	--shyft-accent-soft: rgba(199, 240, 34, 0.22);
+	--shyft-accent-fade: rgba(199, 240, 34, 0.45);
+	--shyft-metric-line-gradient: linear-gradient(
+		90deg,
+		#C7F022 0%,
+		#7789AB 50%,
+		#C7F022 100%
+	);
+	--shyft-activity-line-default: #C7F022;
+	--shyft-activity-line-update: #9aa8c4;
+	--shyft-activity-line-security: #b3dc12;
+	--shyft-activity-line-backup: #7789AB;
+	--shyft-activity-line-performance: #C7F022;
+	--shyft-status-success: #000000;
+	--shyft-status-success-soft: rgba(199, 240, 34, 0.35);
+	--shyft-error: #ffb4b4;
+	--shyft-error-soft: rgba(255, 85, 85, 0.15);
+	--shyft-success: #C7F022;
+	--shyft-success-soft: rgba(199, 240, 34, 0.2);
+	--shyft-warning: #C7F022;
+	--shyft-warning-soft: rgba(199, 240, 34, 0.18);
+	--shyft-on-accent: #000000;
+	--shyft-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
+	--shyft-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+	--shyft-chart-grid: rgba(255, 255, 255, 0.08);
+	--shyft-footer-bg: rgba(0, 0, 0, 0.92);
+	--shyft-input-hover-border: rgba(199, 240, 34, 0.45);
+	--shyft-tooltip-bg: #7789AB;
+	--shyft-tooltip-text: #000000;
 }
 
 *,
@@ -422,21 +439,21 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 }
 
 .shyft-dashboard__notice--success {
-	border-color: rgba(5, 150, 105, 0.25);
-	background: var(--shyft-success-soft);
-	color: var(--shyft-success);
+	border-color: var(--shyft-accent-fade);
+	background: var(--shyft-accent-soft);
+	color: var(--shyft-text);
 }
 
 .shyft-dashboard__notice--error {
-	border-color: rgba(220, 38, 38, 0.25);
+	border-color: rgba(139, 26, 26, 0.35);
 	background: var(--shyft-error-soft);
 	color: var(--shyft-error);
 }
 
 .shyft-dashboard__notice--warning {
-	border-color: rgba(217, 119, 6, 0.25);
+	border-color: var(--shyft-accent-fade);
 	background: var(--shyft-warning-soft);
-	color: var(--shyft-warning);
+	color: var(--shyft-text);
 }
 
 .shyft-dashboard__notice--tasks {
@@ -545,8 +562,8 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 }
 
 .shyft-task__checkbox:checked + .shyft-task__checkbox-ui {
-	border-color: var(--shyft-status-success);
-	background: var(--shyft-status-success);
+	border-color: var(--shyft-brand-black);
+	background: var(--shyft-accent);
 	box-shadow: inset 0 0 0 2px var(--shyft-surface);
 }
 
@@ -573,7 +590,7 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 	font-family: var(--shyft-font-body);
 	font-size: 16px;
 	font-weight: 600;
-	color: var(--shyft-text);
+	color: var(--shyft-card-text);
 }
 
 .shyft-task__status {
@@ -585,20 +602,21 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 }
 
 .shyft-task__status.is-open {
-	background: var(--shyft-warning-soft);
-	color: var(--shyft-warning);
+	background: var(--shyft-accent-soft);
+	color: var(--shyft-card-text);
 }
 
 .shyft-task__status.is-done {
-	background: var(--shyft-status-success-soft);
-	color: var(--shyft-status-success);
+	background: var(--shyft-accent);
+	color: var(--shyft-brand-black);
 }
 
 .shyft-task__message {
 	margin: 8px 0 0;
-	color: var(--shyft-text-soft);
+	color: var(--shyft-card-text);
 	font-size: 14px;
 	line-height: 1.5;
+	opacity: 0.85;
 }
 
 .shyft-task__meta {
@@ -608,8 +626,9 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 	margin: 10px 0 0;
 	padding: 0;
 	list-style: none;
-	color: var(--shyft-text-muted);
+	color: var(--shyft-card-text);
 	font-size: 13px;
+	opacity: 0.65;
 }
 
 .shyft-task__attachment {
@@ -787,6 +806,7 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 	border-radius: var(--shyft-radius-lg);
 	padding: 24px;
 	box-shadow: var(--shyft-shadow-sm);
+	color: var(--shyft-card-text);
 	transition: box-shadow 0.2s ease, background 0.25s ease, border-color 0.25s ease;
 }
 
@@ -825,7 +845,7 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 }
 
 .shyft-outlink-domains__clicks {
-	color: var(--shyft-text);
+	color: var(--shyft-card-text);
 	font-weight: 600;
 	flex-shrink: 0;
 }
@@ -860,7 +880,7 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 	font-size: 34px;
 	font-weight: 400;
 	line-height: 1;
-	color: var(--shyft-text);
+	color: var(--shyft-card-text);
 	letter-spacing: 0.02em;
 }
 
@@ -872,29 +892,19 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 	display: inline-block;
 	margin-top: 20px;
 	padding-top: 4px;
-	color: #000000;
+	color: var(--shyft-card-text);
 	font-size: 12px;
-	font-weight: 400;
+	font-weight: 600;
 	line-height: 1.45;
 	text-decoration: underline;
 	text-underline-offset: 2px;
 }
 
-[data-theme="dark"] .shyft-card__link {
-	color: var(--shyft-text);
-}
-
 .shyft-card__link:hover,
 .shyft-card__link:focus {
-	color: #000000;
+	color: var(--shyft-card-text);
 	text-decoration: underline;
-	opacity: 0.75;
-}
-
-[data-theme="dark"] .shyft-card__link:hover,
-[data-theme="dark"] .shyft-card__link:focus {
-	color: var(--shyft-text);
-	opacity: 0.8;
+	opacity: 0.7;
 }
 
 .shyft-card__heading {
@@ -902,7 +912,7 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 	font-family: var(--shyft-font-body);
 	font-size: 17px;
 	font-weight: 600;
-	color: var(--shyft-text);
+	color: var(--shyft-card-text);
 	letter-spacing: -0.01em;
 }
 
@@ -961,7 +971,7 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 
 .shyft-leads-list__name,
 .shyft-leads-list__link {
-	color: var(--shyft-text);
+	color: var(--shyft-card-text);
 	font-weight: 500;
 	font-size: 14px;
 }

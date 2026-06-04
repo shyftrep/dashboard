@@ -27,8 +27,8 @@ $config = Shyft_Dashboard_Warmup::get_script_config( 'redirect' );
 			align-items: center;
 			justify-content: center;
 			font-family: Roboto, system-ui, sans-serif;
-			background: #0f1419;
-			color: #e8eaed;
+			background: #7789AB;
+			color: #000000;
 		}
 		.shyft-warmup {
 			text-align: center;
@@ -39,8 +39,8 @@ $config = Shyft_Dashboard_Warmup::get_script_config( 'redirect' );
 			width: 2.5rem;
 			height: 2.5rem;
 			margin: 0 auto 1.25rem;
-			border: 3px solid rgba(255, 255, 255, 0.15);
-			border-top-color: #7dd3a8;
+			border: 3px solid rgba(0, 0, 0, 0.12);
+			border-top-color: #C7F022;
 			border-radius: 50%;
 			animation: shyft-warmup-spin 0.8s linear infinite;
 		}
