@@ -31,7 +31,40 @@ final class Shyft_Dashboard_Warmup {
 		add_action( 'template_redirect', array( self::class, 'maybe_prepare_warmup' ), PHP_INT_MIN );
 		add_filter( 'template_include', array( self::class, 'filter_warmup_template' ), PHP_INT_MAX );
 		add_action( 'wp_enqueue_scripts', array( self::class, 'maybe_enqueue_background_warmup' ), 20 );
+		add_action( 'admin_enqueue_scripts', array( self::class, 'maybe_enqueue_admin_warmup' ), 20 );
 		add_action( 'wp_ajax_' . self::AJAX_ACTION, array( self::class, 'handle_warmup_complete' ) );
+	}
+
+	/**
+	 * Users who benefit from dashboard preload (customers, editors, admins previewing).
+	 *
+	 * @param WP_User|null $user User object.
+	 */
+	public static function is_eligible_for_warmup( ?WP_User $user = null ): bool {
+		$user = $user ?? wp_get_current_user();
+
+		if ( ! $user instanceof WP_User || ! $user->exists() ) {
+			return false;
+		}
+
+		if ( Shyft_Dashboard_Roles::uses_dashboard( $user ) ) {
+			return true;
+		}
+
+		return user_can( $user, 'manage_options' );
+	}
+
+	/**
+	 * Dashboard or warmup gate URL, depending on today's preload status.
+	 *
+	 * @param WP_User|null $user User object.
+	 */
+	public static function get_dashboard_entry_url( ?WP_User $user = null ): string {
+		if ( self::needs_warmup( $user ) ) {
+			return self::get_warmup_url();
+		}
+
+		return Shyft_Dashboard_Routing::get_dashboard_url();
 	}
 
 	/**
@@ -93,7 +126,7 @@ final class Shyft_Dashboard_Warmup {
 			return false;
 		}
 
-		if ( ! Shyft_Dashboard_Roles::uses_dashboard( $user ) ) {
+		if ( ! self::is_eligible_for_warmup( $user ) ) {
 			return false;
 		}
 
@@ -141,7 +174,7 @@ final class Shyft_Dashboard_Warmup {
 			exit;
 		}
 
-		if ( ! Shyft_Dashboard_Roles::uses_dashboard() ) {
+		if ( ! self::is_eligible_for_warmup() ) {
 			wp_safe_redirect( Shyft_Dashboard_Routing::get_dashboard_url() );
 			exit;
 		}
@@ -190,10 +223,32 @@ final class Shyft_Dashboard_Warmup {
 			return;
 		}
 
-		if ( ! Shyft_Dashboard_Roles::uses_dashboard() || ! self::needs_warmup() ) {
+		if ( ! self::is_eligible_for_warmup() || ! self::needs_warmup() ) {
 			return;
 		}
 
+		self::enqueue_warmup_script( 'silent' );
+	}
+
+	/**
+	 * Silent preload in wp-admin (e.g. before admin bar "Kunden-Dashboard" click).
+	 */
+	public static function maybe_enqueue_admin_warmup(): void {
+		if ( ! is_user_logged_in() ) {
+			return;
+		}
+
+		if ( ! self::is_eligible_for_warmup() || ! self::needs_warmup() ) {
+			return;
+		}
+
+		self::enqueue_warmup_script( 'silent' );
+	}
+
+	/**
+	 * @param string $mode "redirect" or "silent".
+	 */
+	private static function enqueue_warmup_script( string $mode ): void {
 		wp_enqueue_script(
 			'shyft-dashboard-warmup',
 			SHYFT_DASHBOARD_URL . 'assets/js/dashboard-warmup.js',
@@ -205,7 +260,7 @@ final class Shyft_Dashboard_Warmup {
 		wp_localize_script(
 			'shyft-dashboard-warmup',
 			'shyftDashboardWarmup',
-			self::get_script_config( 'silent' )
+			self::get_script_config( $mode )
 		);
 	}
 
@@ -230,7 +285,7 @@ final class Shyft_Dashboard_Warmup {
 	public static function handle_warmup_complete(): void {
 		check_ajax_referer( self::NONCE_ACTION, 'nonce' );
 
-		if ( ! is_user_logged_in() || ! Shyft_Dashboard_Roles::uses_dashboard() ) {
+		if ( ! is_user_logged_in() || ! self::is_eligible_for_warmup() ) {
 			wp_send_json_error( null, 403 );
 		}
 

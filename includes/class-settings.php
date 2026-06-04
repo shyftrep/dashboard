@@ -60,7 +60,7 @@ final class Shyft_Dashboard_Settings {
 			array(
 				'id'    => 'shyft-dashboard-preview',
 				'title' => esc_html__( 'Kunden-Dashboard', 'shyft-dashboard' ),
-				'href'  => Shyft_Dashboard_Routing::get_dashboard_url(),
+				'href'  => Shyft_Dashboard_Warmup::get_dashboard_entry_url(),
 				'meta'  => array(
 					'title'  => esc_attr__( 'Dashboard-Vorschau öffnen', 'shyft-dashboard' ),
 					'target' => '_blank',
