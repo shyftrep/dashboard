@@ -81,10 +81,10 @@ final class Shyft_Dashboard_Period {
 			$days = self::DEFAULT_DAYS;
 		}
 
-		return add_query_arg(
-			self::QUERY_VAR,
-			(string) $days,
-			Shyft_Dashboard_Routing::get_dashboard_url()
-		);
+		if ( self::DEFAULT_DAYS === $days ) {
+			return Shyft_Dashboard_Routing::get_dashboard_url();
+		}
+
+		return home_url( '/dashboard/' . $days . '/' );
 	}
 }

@@ -22,14 +22,17 @@ final class Shyft_Dashboard_Routing {
 	 * Registers routing hooks.
 	 */
 	public static function register(): void {
+		add_action( 'init', array( self::class, 'bootstrap_dashboard_request' ), 0 );
 		add_action( 'init', array( self::class, 'add_rewrite_rules' ) );
 		add_action( 'init', array( self::class, 'maybe_flush_rewrite_rules' ), 20 );
 		add_filter( 'query_vars', array( self::class, 'add_query_vars' ) );
 		add_action( 'parse_request', array( self::class, 'prime_dashboard_query' ) );
+		add_filter( 'wp_headers', array( self::class, 'filter_dashboard_headers' ), 99999 );
+		add_filter( 'default_content_type', array( self::class, 'filter_default_content_type' ), 999 );
 		add_action( 'send_headers', array( self::class, 'send_dashboard_headers' ), 0 );
 		add_action( 'wp_enqueue_scripts', array( self::class, 'enqueue_dashboard_assets' ), 5 );
 		add_action( 'wp_enqueue_scripts', array( self::class, 'isolate_dashboard_assets' ), 9999 );
-		add_action( 'template_redirect', array( self::class, 'maybe_render_dashboard' ), 0 );
+		add_action( 'template_redirect', array( self::class, 'maybe_render_dashboard' ), PHP_INT_MIN );
 		add_filter( 'redirect_canonical', array( self::class, 'disable_canonical_redirect' ), 10, 2 );
 		add_filter( 'login_redirect', array( self::class, 'login_redirect' ), 10, 3 );
 		add_action( 'admin_init', array( self::class, 'block_wp_admin_for_kunde' ) );
@@ -52,13 +55,44 @@ final class Shyft_Dashboard_Routing {
 	}
 
 	/**
+	 * Disables page-cache plugins for dashboard routes (before a poisoned cache entry is served).
+	 */
+	public static function bootstrap_dashboard_request(): void {
+		if ( ! self::matches_dashboard_uri() ) {
+			return;
+		}
+
+		if ( ! defined( 'DONOTCACHEPAGE' ) ) {
+			define( 'DONOTCACHEPAGE', true );
+		}
+
+		if ( ! defined( 'LSCACHE_NO_CACHE' ) ) {
+			define( 'LSCACHE_NO_CACHE', true );
+		}
+
+		if ( ! defined( 'DONOTROCKETOPTIMIZE' ) ) {
+			define( 'DONOTROCKETOPTIMIZE', true );
+		}
+
+		self::send_dashboard_response_headers();
+	}
+
+	/**
 	 * Ensures the dashboard query var is set before the main query runs.
 	 *
 	 * @param WP $wp WordPress environment.
 	 */
 	public static function prime_dashboard_query( WP $wp ): void {
-		if ( self::matches_dashboard_uri() ) {
-			$wp->query_vars[ self::QUERY_VAR ] = '1';
+		if ( ! self::matches_dashboard_uri() ) {
+			return;
+		}
+
+		$wp->query_vars[ self::QUERY_VAR ] = '1';
+
+		$period_days = self::get_period_from_path();
+
+		if ( null !== $period_days ) {
+			$wp->query_vars[ Shyft_Dashboard_Period::QUERY_VAR ] = (string) $period_days;
 		}
 	}
 
@@ -80,6 +114,11 @@ final class Shyft_Dashboard_Routing {
 	 * Adds the dashboard rewrite endpoint.
 	 */
 	public static function add_rewrite_rules(): void {
+		add_rewrite_rule(
+			'^dashboard/(7|30|90)/?$',
+			'index.php?' . self::QUERY_VAR . '=1&' . Shyft_Dashboard_Period::QUERY_VAR . '=$matches[1]',
+			'top'
+		);
 		add_rewrite_rule( '^dashboard/?$', 'index.php?' . self::QUERY_VAR . '=1', 'top' );
 	}
 
@@ -96,14 +135,84 @@ final class Shyft_Dashboard_Routing {
 	}
 
 	/**
+	 * Forces HTML Content-Type on dashboard routes (overrides cache/security plugins).
+	 *
+	 * @param array<string, string> $headers Outgoing headers.
+	 * @return array<string, string>
+	 */
+	public static function filter_dashboard_headers( array $headers ): array {
+		if ( ! self::matches_dashboard_uri() && ! self::is_dashboard_request() ) {
+			return $headers;
+		}
+
+		$headers['Content-Type'] = 'text/html; charset=' . get_bloginfo( 'charset' );
+
+		return $headers;
+	}
+
+	/**
+	 * @param string $content_type Default MIME type.
+	 */
+	public static function filter_default_content_type( string $content_type ): string {
+		if ( self::matches_dashboard_uri() || self::is_dashboard_request() ) {
+			return 'text/html';
+		}
+
+		return $content_type;
+	}
+
+	/**
 	 * Sends HTML cache headers before any dashboard output (avoids plain-text rendering).
 	 */
 	public static function send_dashboard_headers(): void {
-		if ( ! self::is_dashboard_request() || headers_sent() ) {
+		if ( ! self::matches_dashboard_uri() && ! self::is_dashboard_request() ) {
 			return;
 		}
 
-		header( 'Content-Type: text/html; charset=' . get_bloginfo( 'charset' ) );
+		self::send_dashboard_response_headers();
+	}
+
+	/**
+	 * Redirects legacy ?shyft_period= URLs to /dashboard/{days}/ (avoids query-string cache bugs).
+	 */
+	private static function maybe_redirect_legacy_period_url(): void {
+		if ( ! self::matches_dashboard_uri() ) {
+			return;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Public period selector.
+		if ( ! isset( $_GET[ Shyft_Dashboard_Period::QUERY_VAR ] ) ) {
+			return;
+		}
+
+		if ( null !== self::get_period_from_path() ) {
+			return;
+		}
+
+		$days = absint( wp_unslash( (string) $_GET[ Shyft_Dashboard_Period::QUERY_VAR ] ) );
+
+		if ( ! in_array( $days, Shyft_Dashboard_Period::ALLOWED_DAYS, true ) ) {
+			return;
+		}
+
+		wp_safe_redirect( Shyft_Dashboard_Period::get_dashboard_url( $days ), 301 );
+		exit;
+	}
+
+	/**
+	 * Sends Content-Type and no-cache headers for dashboard responses.
+	 */
+	private static function send_dashboard_response_headers(): void {
+		if ( headers_sent() ) {
+			return;
+		}
+
+		if ( function_exists( 'header_remove' ) ) {
+			header_remove( 'Content-Type' );
+		}
+
+		header( 'Content-Type: text/html; charset=' . get_bloginfo( 'charset' ), true );
+		header( 'X-LiteSpeed-Cache-Control: no-cache', false );
 		nocache_headers();
 	}
 
@@ -111,6 +220,8 @@ final class Shyft_Dashboard_Routing {
 	 * Renders the dashboard template when the route matches.
 	 */
 	public static function maybe_render_dashboard(): void {
+		self::maybe_redirect_legacy_period_url();
+
 		if ( ! self::is_dashboard_request() ) {
 			return;
 		}
@@ -149,10 +260,7 @@ final class Shyft_Dashboard_Routing {
 			ob_end_clean();
 		}
 
-		if ( ! headers_sent() ) {
-			header( 'Content-Type: text/html; charset=' . get_bloginfo( 'charset' ) );
-			nocache_headers();
-		}
+		self::send_dashboard_response_headers();
 	}
 
 	/**
@@ -194,7 +302,24 @@ final class Shyft_Dashboard_Routing {
 			return true;
 		}
 
+		if ( preg_match( '#^dashboard/(7|30|90)$#', $path ) ) {
+			return true;
+		}
+
 		return (bool) preg_match( '#(?:^|/)dashboard/?$#', $path );
+	}
+
+	/**
+	 * Reads the period segment from /dashboard/{days}/ when present.
+	 */
+	private static function get_period_from_path(): ?int {
+		$path = self::get_dashboard_request_path();
+
+		if ( ! preg_match( '#^dashboard/(7|30|90)$#', $path, $matches ) ) {
+			return null;
+		}
+
+		return (int) $matches[1];
 	}
 
 	/**
