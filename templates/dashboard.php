@@ -344,6 +344,7 @@ $website_url           = $website_url ?? home_url( '/' );
 
 	<footer class="shyft-dashboard__footer">
 		<p><?php esc_html_e( 'Betreut von SHYFT', 'shyft-dashboard' ); ?></p>
+		<p class="shyft-dashboard__version">SHYFT Dashboard <?php echo esc_html( SHYFT_DASHBOARD_VERSION ); ?></p>
 	</footer>
 </div>
 <?php Shyft_Dashboard_Routing::print_footer_assets(); ?>

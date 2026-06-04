@@ -245,6 +245,9 @@ final class Shyft_Dashboard_Settings {
 		<p>
 			<?php esc_html_e( 'Bei einem öffentlichen Repository ist kein Token nötig. Für ein privates Repository: Fine-grained Personal Access Token mit Lesezugriff auf dieses Repository.', 'shyft-dashboard' ); ?>
 		</p>
+		<p>
+			<?php esc_html_e( 'Alternativ (empfohlen für alle Kundenseiten): Token in wp-config.php setzen – siehe Hinweis beim Feld unten. Niemals im Plugin-Code oder in Git speichern.', 'shyft-dashboard' ); ?>
+		</p>
 		<?php
 	}
 
@@ -255,15 +258,30 @@ final class Shyft_Dashboard_Settings {
 	 */
 	public static function render_github_token_field( array $args ): void {
 		$option = $args['option'];
-		$value  = get_option( $option, '' );
+
+		if ( self::has_github_token_constant() ) {
+			?>
+			<p class="description">
+				<strong><?php esc_html_e( 'Token ist in wp-config.php gesetzt (SHYFT_DASHBOARD_GITHUB_TOKEN).', 'shyft-dashboard' ); ?></strong>
+				<?php esc_html_e( 'Das Feld unten wird ignoriert.', 'shyft-dashboard' ); ?>
+			</p>
+			<?php
+		}
+
+		$value = self::has_github_token_constant() ? '' : (string) get_option( $option, '' );
 		printf(
-			'<input type="password" id="%1$s" name="%1$s" value="%2$s" class="regular-text" autocomplete="off" />',
+			'<input type="password" id="%1$s" name="%1$s" value="%2$s" class="regular-text" autocomplete="off"%3$s />',
 			esc_attr( $option ),
-			esc_attr( (string) $value )
+			esc_attr( $value ),
+			self::has_github_token_constant() ? ' disabled' : ''
 		);
 		?>
 		<p class="description">
 			<?php esc_html_e( 'Nur für private GitHub-Repositories. Token wird nur serverseitig für Update-Prüfungen verwendet.', 'shyft-dashboard' ); ?>
+		</p>
+		<p class="description">
+			<code>define( 'SHYFT_DASHBOARD_GITHUB_TOKEN', 'ghp_…' );</code>
+			<?php esc_html_e( 'in wp-config.php oberhalb von „That\'s all, stop editing!“ – nicht ins Plugin und nicht in Git.', 'shyft-dashboard' ); ?>
 		</p>
 		<?php
 	}
@@ -360,9 +378,24 @@ final class Shyft_Dashboard_Settings {
 	}
 
 	/**
+	 * Whether the GitHub token is defined via wp-config.php (not stored in the database).
+	 */
+	public static function has_github_token_constant(): bool {
+		return defined( 'SHYFT_DASHBOARD_GITHUB_TOKEN' )
+			&& is_string( SHYFT_DASHBOARD_GITHUB_TOKEN )
+			&& '' !== SHYFT_DASHBOARD_GITHUB_TOKEN;
+	}
+
+	/**
 	 * Returns the GitHub token for private repository updates.
+	 *
+	 * Priority: wp-config constant, then value from plugin settings.
 	 */
 	public static function get_github_token(): string {
+		if ( self::has_github_token_constant() ) {
+			return SHYFT_DASHBOARD_GITHUB_TOKEN;
+		}
+
 		return (string) get_option( 'shyft_dashboard_github_token', '' );
 	}
 

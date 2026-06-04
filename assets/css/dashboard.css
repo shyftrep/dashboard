@@ -858,6 +858,12 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 	font-size: 13px;
 }
 
+.shyft-dashboard__version {
+	margin-top: 6px !important;
+	font-size: 11px !important;
+	opacity: 0.75;
+}
+
 @media (max-width: 960px) {
 	.shyft-dashboard__metrics {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
