@@ -16,6 +16,7 @@ require_once plugin_dir_path( __FILE__ ) . 'includes/class-roles.php';
 Shyft_Dashboard_Roles::remove_role();
 
 delete_option( 'shyft_dashboard_matomo_token' );
+delete_option( 'shyft_dashboard_github_token' );
 delete_option( 'shyft_dashboard_matomo_url' );
 delete_option( 'shyft_dashboard_matomo_site_id' );
 delete_option( 'shyft_dashboard_agency_email' );

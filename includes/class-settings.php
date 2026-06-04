@@ -93,6 +93,16 @@ final class Shyft_Dashboard_Settings {
 			)
 		);
 
+		register_setting(
+			self::OPTION_GROUP,
+			'shyft_dashboard_github_token',
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => 'sanitize_text_field',
+				'default'           => '',
+			)
+		);
+
 		add_settings_section(
 			'shyft_dashboard_main',
 			__( 'Dashboard-Einstellungen', 'shyft-dashboard' ),
@@ -107,8 +117,16 @@ final class Shyft_Dashboard_Settings {
 			self::PAGE_SLUG
 		);
 
+		add_settings_section(
+			'shyft_dashboard_updates',
+			__( 'Plugin-Updates (GitHub)', 'shyft-dashboard' ),
+			array( self::class, 'render_updates_section_description' ),
+			self::PAGE_SLUG
+		);
+
 		self::add_field( 'shyft_dashboard_logo_url', __( 'Dashboard-Logo', 'shyft-dashboard' ), 'render_logo_field', 'shyft_dashboard_main' );
 		self::add_field( 'shyft_dashboard_matomo_token', __( 'Matomo API-Token (optional)', 'shyft-dashboard' ), 'render_matomo_token_field', 'shyft_dashboard_matomo' );
+		self::add_field( 'shyft_dashboard_github_token', __( 'GitHub-Zugriffstoken', 'shyft-dashboard' ), 'render_github_token_field', 'shyft_dashboard_updates' );
 	}
 
 	/**
@@ -211,6 +229,46 @@ final class Shyft_Dashboard_Settings {
 	}
 
 	/**
+	 * Renders the GitHub updates section description.
+	 */
+	public static function render_updates_section_description(): void {
+		?>
+		<p>
+			<?php
+			printf(
+				/* translators: %s: GitHub repository URL */
+				esc_html__( 'Updates werden von %s geladen (GitHub Releases mit Tag vX.Y.Z, z. B. v1.0.2).', 'shyft-dashboard' ),
+				esc_html( Shyft_Dashboard_Updater::GITHUB_REPO_URL )
+			);
+			?>
+		</p>
+		<p>
+			<?php esc_html_e( 'Bei einem öffentlichen Repository ist kein Token nötig. Für ein privates Repository: Fine-grained Personal Access Token mit Lesezugriff auf dieses Repository.', 'shyft-dashboard' ); ?>
+		</p>
+		<?php
+	}
+
+	/**
+	 * Renders the GitHub token field for private repository updates.
+	 *
+	 * @param array<string, string> $args Field arguments.
+	 */
+	public static function render_github_token_field( array $args ): void {
+		$option = $args['option'];
+		$value  = get_option( $option, '' );
+		printf(
+			'<input type="password" id="%1$s" name="%1$s" value="%2$s" class="regular-text" autocomplete="off" />',
+			esc_attr( $option ),
+			esc_attr( (string) $value )
+		);
+		?>
+		<p class="description">
+			<?php esc_html_e( 'Nur für private GitHub-Repositories. Token wird nur serverseitig für Update-Prüfungen verwendet.', 'shyft-dashboard' ); ?>
+		</p>
+		<?php
+	}
+
+	/**
 	 * Renders the optional Matomo token field with instructions.
 	 *
 	 * @param array<string, string> $args Field arguments.
@@ -299,6 +357,13 @@ final class Shyft_Dashboard_Settings {
 	 */
 	public static function get_matomo_token(): string {
 		return (string) get_option( 'shyft_dashboard_matomo_token', '' );
+	}
+
+	/**
+	 * Returns the GitHub token for private repository updates.
+	 */
+	public static function get_github_token(): string {
+		return (string) get_option( 'shyft_dashboard_github_token', '' );
 	}
 
 	/**
