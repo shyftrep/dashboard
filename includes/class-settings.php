@@ -244,11 +244,11 @@ final class Shyft_Dashboard_Settings {
 			?>
 		</p>
 		<p>
-			<?php esc_html_e( 'Bei einem öffentlichen Repository ist kein Token nötig.', 'shyft-dashboard' ); ?>
+			<strong><?php esc_html_e( 'Öffentliches Repository:', 'shyft-dashboard' ); ?></strong>
+			<?php esc_html_e( 'Kein Token nötig – includes/github-token.php leer lassen und das Einstellungsfeld unten leer.', 'shyft-dashboard' ); ?>
 		</p>
 		<p>
-			<strong><?php esc_html_e( 'Privates Repository:', 'shyft-dashboard' ); ?></strong>
-			<?php esc_html_e( 'Token in die Datei includes/github-token.php eintragen – gilt auf allen Sites automatisch nach einem Plugin-Update.', 'shyft-dashboard' ); ?>
+			<?php esc_html_e( 'Nur bei einem privaten Repository einen Token in includes/github-token.php oder in den Einstellungen hinterlegen.', 'shyft-dashboard' ); ?>
 		</p>
 		<p>
 			<?php esc_html_e( 'Der Link „Auf Updates prüfen“ steht unter Plugins in der Zeile „SHYFT Dashboard“ (nicht bei WordPress-Core-Updates).', 'shyft-dashboard' ); ?>
@@ -306,7 +306,7 @@ final class Shyft_Dashboard_Settings {
 						if ( $has_token ) {
 							echo esc_html( self::get_github_token_source_label() );
 						} else {
-							esc_html_e( 'fehlt – includes/github-token.php ausfüllen', 'shyft-dashboard' );
+							esc_html_e( 'nicht nötig (öffentliches Repo)', 'shyft-dashboard' );
 						}
 						?>
 					</td>

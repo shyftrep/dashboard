@@ -1,9 +1,9 @@
 <?php
 /**
- * GitHub-Zugriffstoken für private Updates (shyftrep/dashboard).
+ * GitHub-Zugriffstoken (optional).
  *
- * Trage deinen Personal Access Token unten ein.
- * Gilt automatisch auf allen WordPress-Sites nach Plugin-Update/Release.
+ * Öffentliches Repository shyftrep/dashboard: leer lassen (return '').
+ * Nur bei privatem Repo einen Personal Access Token eintragen.
  *
  * @package ShyftDashboard
  */

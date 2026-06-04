@@ -130,8 +130,8 @@ final class Shyft_Dashboard_Updater {
 
 		if ( 404 === $code ) {
 			$message = empty( $token )
-				? __( 'Kein Release gefunden oder privates Repo ohne Token.', 'shyft-dashboard' )
-				: __( 'Kein Release gefunden. Prüfe GitHub Actions und ob vX.Y.Z veröffentlicht wurde.', 'shyft-dashboard' );
+				? __( 'Kein Release gefunden. Prüfe GitHub Actions und ob Tag vX.Y.Z veröffentlicht wurde.', 'shyft-dashboard' )
+				: __( 'Kein Release gefunden. Prüfe Repository-Zugriff und Release-Tags.', 'shyft-dashboard' );
 
 			return array(
 				'ok'      => false,
