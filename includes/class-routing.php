@@ -472,6 +472,12 @@ final class Shyft_Dashboard_Routing {
 		$categories            = array();
 		$flash                 = null;
 		$latest_activities     = array();
+		$tasks_notice          = null;
+		$tasks_tracker         = array(
+			'open'       => array(),
+			'done'       => array(),
+			'can_manage' => false,
+		);
 
 		try {
 			$leads           = new Shyft_Dashboard_Leads();
@@ -490,6 +496,8 @@ final class Shyft_Dashboard_Routing {
 			$categories            = $change_req->get_categories();
 			$flash                 = $change_req->get_flash_message();
 			$latest_activities     = $recent_activity->get_display_activities();
+			$tasks_notice          = Shyft_Dashboard_Tasks::get_notice( $current_user );
+			$tasks_tracker         = Shyft_Dashboard_Tasks::get_tracker_data( $current_user );
 		} catch ( Throwable $exception ) {
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 				error_log( 'SHYFT Dashboard render error: ' . $exception->getMessage() );

@@ -23,6 +23,7 @@ require_once SHYFT_DASHBOARD_PATH . 'includes/class-site-status.php';
 require_once SHYFT_DASHBOARD_PATH . 'includes/class-matomo.php';
 require_once SHYFT_DASHBOARD_PATH . 'includes/class-plugin-updates.php';
 require_once SHYFT_DASHBOARD_PATH . 'includes/class-change-request.php';
+require_once SHYFT_DASHBOARD_PATH . 'includes/class-tasks.php';
 require_once SHYFT_DASHBOARD_PATH . 'includes/class-recent-activity.php';
 require_once SHYFT_DASHBOARD_PATH . 'includes/class-settings.php';
 require_once SHYFT_DASHBOARD_PATH . 'includes/class-updater.php';
@@ -89,6 +90,7 @@ final class Shyft_Dashboard {
 		Shyft_Dashboard_Matomo::register();
 		Shyft_Dashboard_Plugin_Updates::register();
 		Shyft_Dashboard_Change_Request::register();
+		Shyft_Dashboard_Tasks::register();
 		Shyft_Dashboard_Recent_Activity::register();
 		Shyft_Dashboard_Settings::register();
 		Shyft_Dashboard_Updater::register();

@@ -20,6 +20,8 @@
  * @var bool   $show_website_link
  * @var string $website_url
  * @var string $period_label
+ * @var array{message: string, count: int, anchor: string}|null $tasks_notice
+ * @var array{open: list<array<string, mixed>>, done: list<array<string, mixed>>, can_manage: bool} $tasks_tracker
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -42,6 +44,12 @@ $latest_activities     = $latest_activities ?? array();
 $show_website_link     = $show_website_link ?? false;
 $website_url           = $website_url ?? home_url( '/' );
 $period_label          = $period_label ?? Shyft_Dashboard_Period::get_label();
+$tasks_notice          = $tasks_notice ?? null;
+$tasks_tracker         = $tasks_tracker ?? array(
+	'open'       => array(),
+	'done'       => array(),
+	'can_manage' => false,
+);
 ?>
 <!DOCTYPE html>
 <html <?php language_attributes(); ?> data-theme="light">
@@ -112,6 +120,8 @@ $period_label          = $period_label ?? Shyft_Dashboard_Period::get_label();
 				<?php echo esc_html( $flash['message'] ); ?>
 			</div>
 		<?php endif; ?>
+
+		<?php include SHYFT_DASHBOARD_PATH . 'templates/partials/tasks-notice.php'; ?>
 
 		<?php if ( ! empty( $latest_activities ) ) : ?>
 			<section class="shyft-dashboard__activity" aria-label="<?php esc_attr_e( 'Letzte Wartung', 'shyft-dashboard' ); ?>">
@@ -391,6 +401,8 @@ $period_label          = $period_label ?? Shyft_Dashboard_Period::get_label();
 				</form>
 			</article>
 		</section>
+
+		<?php include SHYFT_DASHBOARD_PATH . 'templates/partials/tasks-tracker.php'; ?>
 	</main>
 
 	<footer class="shyft-dashboard__footer">

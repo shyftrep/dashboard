@@ -163,6 +163,8 @@ final class Shyft_Dashboard_Change_Request {
 		update_post_meta( $post_id, '_shyft_customer_name', $user->display_name ?: $user->user_login );
 		update_post_meta( $post_id, '_shyft_customer_id', $user->ID );
 
+		Shyft_Dashboard_Tasks::mark_open( (int) $post_id );
+
 		if ( ! empty( $upload['attachment_id'] ) ) {
 			update_post_meta( $post_id, '_shyft_attachment_id', (int) $upload['attachment_id'] );
 			wp_update_post(
