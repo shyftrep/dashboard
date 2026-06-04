@@ -19,6 +19,7 @@
  * @var array{type: string, message: string}|null $flash
  * @var bool   $show_website_link
  * @var string $website_url
+ * @var string $period_label
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -40,6 +41,7 @@ $flash                 = $flash ?? null;
 $latest_activities     = $latest_activities ?? array();
 $show_website_link     = $show_website_link ?? false;
 $website_url           = $website_url ?? home_url( '/' );
+$period_label          = $period_label ?? Shyft_Dashboard_Period::get_label();
 ?>
 <!DOCTYPE html>
 <html <?php language_attributes(); ?> data-theme="light">
@@ -67,10 +69,14 @@ $website_url           = $website_url ?? home_url( '/' );
 			<div class="shyft-dashboard__brand">
 				<img src="<?php echo esc_url( $logo_url ); ?>" alt="<?php esc_attr_e( 'SHYFT', 'shyft-dashboard' ); ?>" class="shyft-dashboard__logo" width="120" height="40">
 			</div>
-			<?php
-			$theme_switch_modifier = 'header';
-			include SHYFT_DASHBOARD_PATH . 'templates/partials/theme-switch.php';
-			?>
+			<div class="shyft-dashboard__header-toolbar">
+				<?php
+				$period_switch_modifier = 'header';
+				include SHYFT_DASHBOARD_PATH . 'templates/partials/period-switch.php';
+				$theme_switch_modifier = 'header';
+				include SHYFT_DASHBOARD_PATH . 'templates/partials/theme-switch.php';
+				?>
+			</div>
 		</div>
 		<div class="shyft-dashboard__header-actions">
 			<?php if ( ! empty( $show_website_link ) ) : ?>
@@ -88,10 +94,14 @@ $website_url           = $website_url ?? home_url( '/' );
 		<div class="shyft-dashboard__intro">
 			<div class="shyft-dashboard__intro-row">
 				<h1 class="shyft-dashboard__title"><?php esc_html_e( 'Dein Website-Dashboard', 'shyft-dashboard' ); ?></h1>
-				<?php
-				$theme_switch_modifier = 'intro';
-				include SHYFT_DASHBOARD_PATH . 'templates/partials/theme-switch.php';
-				?>
+				<div class="shyft-dashboard__toolbar">
+					<?php
+					$period_switch_modifier = 'intro';
+					include SHYFT_DASHBOARD_PATH . 'templates/partials/period-switch.php';
+					$theme_switch_modifier = 'intro';
+					include SHYFT_DASHBOARD_PATH . 'templates/partials/theme-switch.php';
+					?>
+				</div>
 			</div>
 			<p class="shyft-dashboard__subtitle"><?php esc_html_e( 'Alle wichtigen Kennzahlen und Anfragen auf einen Blick.', 'shyft-dashboard' ); ?></p>
 		</div>
@@ -126,12 +136,28 @@ $website_url           = $website_url ?? home_url( '/' );
 
 		<section class="shyft-dashboard__metrics" aria-label="<?php esc_attr_e( 'Kennzahlen', 'shyft-dashboard' ); ?>">
 			<article class="shyft-card shyft-card--metric">
-				<p class="shyft-card__label"><?php esc_html_e( 'Neue Anfragen (90 Tage)', 'shyft-dashboard' ); ?></p>
+				<p class="shyft-card__label">
+					<?php
+					printf(
+						/* translators: %s: reporting period label, e.g. "90 Tage" */
+						esc_html__( 'Neue Anfragen (%s)', 'shyft-dashboard' ),
+						esc_html( $period_label )
+					);
+					?>
+				</p>
 				<p class="shyft-card__value"><?php echo esc_html( (string) $new_leads_count ); ?></p>
 			</article>
 
 			<article class="shyft-card shyft-card--metric">
-				<p class="shyft-card__label"><?php esc_html_e( 'Besucher (90 Tage)', 'shyft-dashboard' ); ?></p>
+				<p class="shyft-card__label">
+					<?php
+					printf(
+						/* translators: %s: reporting period label */
+						esc_html__( 'Besucher (%s)', 'shyft-dashboard' ),
+						esc_html( $period_label )
+					);
+					?>
+				</p>
 				<p class="shyft-card__value">
 					<?php
 					echo esc_html(
@@ -144,7 +170,15 @@ $website_url           = $website_url ?? home_url( '/' );
 			</article>
 
 			<article class="shyft-card shyft-card--metric">
-				<p class="shyft-card__label"><?php esc_html_e( 'Seitenaufrufe (90 Tage)', 'shyft-dashboard' ); ?></p>
+				<p class="shyft-card__label">
+					<?php
+					printf(
+						/* translators: %s: reporting period label */
+						esc_html__( 'Seitenaufrufe (%s)', 'shyft-dashboard' ),
+						esc_html( $period_label )
+					);
+					?>
+				</p>
 				<p class="shyft-card__value">
 					<?php
 					echo esc_html(
@@ -160,7 +194,15 @@ $website_url           = $website_url ?? home_url( '/' );
 			</article>
 
 			<article class="shyft-card shyft-card--metric">
-				<p class="shyft-card__label"><?php esc_html_e( 'WhatsApp-Klicks (90 Tage)', 'shyft-dashboard' ); ?></p>
+				<p class="shyft-card__label">
+					<?php
+					printf(
+						/* translators: %s: reporting period label */
+						esc_html__( 'WhatsApp-Klicks (%s)', 'shyft-dashboard' ),
+						esc_html( $period_label )
+					);
+					?>
+				</p>
 				<p class="shyft-card__value">
 					<?php
 					echo esc_html(
@@ -173,7 +215,15 @@ $website_url           = $website_url ?? home_url( '/' );
 			</article>
 
 			<article class="shyft-card shyft-card--metric">
-				<p class="shyft-card__label"><?php esc_html_e( 'Externe Link-Klicks (90 Tage)', 'shyft-dashboard' ); ?></p>
+				<p class="shyft-card__label">
+					<?php
+					printf(
+						/* translators: %s: reporting period label */
+						esc_html__( 'Externe Link-Klicks (%s)', 'shyft-dashboard' ),
+						esc_html( $period_label )
+					);
+					?>
+				</p>
 				<p class="shyft-card__value">
 					<?php
 					echo esc_html(

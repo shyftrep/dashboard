@@ -11,6 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+require_once SHYFT_DASHBOARD_PATH . 'includes/class-period.php';
 require_once SHYFT_DASHBOARD_PATH . 'includes/class-roles.php';
 require_once SHYFT_DASHBOARD_PATH . 'includes/class-routing.php';
 require_once SHYFT_DASHBOARD_PATH . 'includes/class-leads.php';

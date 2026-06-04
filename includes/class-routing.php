@@ -328,6 +328,8 @@ final class Shyft_Dashboard_Routing {
 		$website_url       = home_url( '/' );
 		$logout_url        = wp_logout_url( home_url( '/' ) );
 		$form_action       = admin_url( 'admin-post.php' );
+		$period_days       = Shyft_Dashboard_Period::get_days();
+		$period_label      = Shyft_Dashboard_Period::get_label();
 
 		$new_leads_count       = 0;
 		$recent_leads          = array();
@@ -347,7 +349,7 @@ final class Shyft_Dashboard_Routing {
 		try {
 			$leads           = new Shyft_Dashboard_Leads();
 			$site_status     = new Shyft_Dashboard_Site_Status();
-			$matomo          = new Shyft_Dashboard_Matomo();
+			$matomo          = new Shyft_Dashboard_Matomo( $period_days );
 			$plugin_updates  = new Shyft_Dashboard_Plugin_Updates();
 			$change_req      = new Shyft_Dashboard_Change_Request();
 			$recent_activity = new Shyft_Dashboard_Recent_Activity();

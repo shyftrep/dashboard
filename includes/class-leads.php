@@ -16,8 +16,6 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 final class Shyft_Dashboard_Leads {
 
-	private const PERIOD_DAYS = 90;
-
 	/**
 	 * Registers hooks (none required at runtime).
 	 */
@@ -154,7 +152,9 @@ final class Shyft_Dashboard_Leads {
 	 * Returns the GMT datetime string for the start of the reporting period.
 	 */
 	private function get_period_start_gmt(): string {
-		return gmdate( 'Y-m-d H:i:s', time() - ( self::PERIOD_DAYS * DAY_IN_SECONDS ) );
+		$days = Shyft_Dashboard_Period::get_days();
+
+		return gmdate( 'Y-m-d H:i:s', time() - ( $days * DAY_IN_SECONDS ) );
 	}
 
 	/**

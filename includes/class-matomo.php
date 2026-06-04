@@ -16,8 +16,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 final class Shyft_Dashboard_Matomo {
 
-	private const CACHE_KEY              = 'shyft_dashboard_matomo_data_v5';
-	private const MAX_OUTLINK_DOMAINS    = 10;
+	private const CACHE_KEY_PREFIX     = 'shyft_dashboard_matomo_data_v6_';
+	private const MAX_OUTLINK_DOMAINS  = 10;
 	private const CACHE_TTL              = HOUR_IN_SECONDS;
 	private const ERROR_TTL   = 5 * MINUTE_IN_SECONDS;
 	private const API_TIMEOUT = 15;
@@ -29,6 +29,21 @@ final class Shyft_Dashboard_Matomo {
 		'web.whatsapp.com',
 		'whatsapp.com',
 	);
+
+	private int $period_days;
+
+	/**
+	 * @param int|null $period_days Reporting window in days (7, 30, or 90).
+	 */
+	public function __construct( ?int $period_days = null ) {
+		$days = $period_days ?? Shyft_Dashboard_Period::get_days();
+
+		if ( ! in_array( $days, Shyft_Dashboard_Period::ALLOWED_DAYS, true ) ) {
+			$days = Shyft_Dashboard_Period::DEFAULT_DAYS;
+		}
+
+		$this->period_days = $days;
+	}
 
 	/** @var list<string> */
 	private const WHATSAPP_OUTLINK_SEGMENTS = array(
@@ -62,7 +77,7 @@ final class Shyft_Dashboard_Matomo {
 			home_url( '/wp-content/plugins/matomo/app/index.php' )
 		);
 
-		return $url . '#?period=range&date=last90&category=Dashboard_Dashboard&subcategory=1';
+		return $url . '#?period=range&date=' . rawurlencode( $this->get_date_range() ) . '&category=Dashboard_Dashboard&subcategory=1';
 	}
 
 	/**
@@ -71,7 +86,8 @@ final class Shyft_Dashboard_Matomo {
 	 * @return array<string, mixed>
 	 */
 	public function get_analytics_data(): array {
-		$cached = get_transient( self::CACHE_KEY );
+		$cache_key = $this->get_cache_key();
+		$cached    = get_transient( $cache_key );
 
 		if ( is_array( $cached ) ) {
 			return $cached;
@@ -80,9 +96,9 @@ final class Shyft_Dashboard_Matomo {
 		$data = $this->fetch_analytics_data();
 
 		if ( ! empty( $data['available'] ) ) {
-			set_transient( self::CACHE_KEY, $data, self::CACHE_TTL );
+			set_transient( $cache_key, $data, self::CACHE_TTL );
 		} else {
-			set_transient( self::CACHE_KEY, $data, self::ERROR_TTL );
+			set_transient( $cache_key, $data, self::ERROR_TTL );
 		}
 
 		return $data;
@@ -95,7 +111,26 @@ final class Shyft_Dashboard_Matomo {
 		delete_transient( 'shyft_dashboard_matomo_data' );
 		delete_transient( 'shyft_dashboard_matomo_data_v2' );
 		delete_transient( 'shyft_dashboard_matomo_data_v3' );
-		delete_transient( self::CACHE_KEY );
+		delete_transient( 'shyft_dashboard_matomo_data_v4' );
+		delete_transient( 'shyft_dashboard_matomo_data_v5' );
+
+		foreach ( Shyft_Dashboard_Period::ALLOWED_DAYS as $days ) {
+			delete_transient( self::CACHE_KEY_PREFIX . $days );
+		}
+	}
+
+	/**
+	 * Matomo API date parameter for the active period.
+	 */
+	private function get_date_range(): string {
+		return 'last' . $this->period_days;
+	}
+
+	/**
+	 * Transient key scoped to the reporting period.
+	 */
+	private function get_cache_key(): string {
+		return self::CACHE_KEY_PREFIX . $this->period_days;
 	}
 
 	/**
@@ -198,7 +233,7 @@ final class Shyft_Dashboard_Matomo {
 				array(
 					'idSite' => $site_id,
 					'period' => 'range',
-					'date'   => 'last90',
+					'date'   => $this->get_date_range(),
 				)
 			);
 
@@ -207,7 +242,7 @@ final class Shyft_Dashboard_Matomo {
 				array(
 					'idSite' => $site_id,
 					'period' => 'day',
-					'date'   => 'last90',
+					'date'   => $this->get_date_range(),
 				)
 			);
 
@@ -307,14 +342,14 @@ final class Shyft_Dashboard_Matomo {
 			$summary = $this->rest_visits_summary_get(
 				array(
 					'period' => 'range',
-					'date'   => 'last90',
+					'date'   => $this->get_date_range(),
 				)
 			);
 
 			$chart = $this->rest_visits_summary_get(
 				array(
 					'period' => 'day',
-					'date'   => 'last90',
+					'date'   => $this->get_date_range(),
 				)
 			);
 
@@ -433,7 +468,7 @@ final class Shyft_Dashboard_Matomo {
 				'method'     => 'VisitsSummary.get',
 				'idSite'     => (string) $site_id,
 				'period'     => 'range',
-				'date'       => 'last90',
+				'date'       => $this->get_date_range(),
 				'format'     => 'json',
 				'token_auth' => $token,
 			)
@@ -446,7 +481,7 @@ final class Shyft_Dashboard_Matomo {
 				'method'     => 'VisitsSummary.get',
 				'idSite'     => (string) $site_id,
 				'period'     => 'day',
-				'date'       => 'last90',
+				'date'       => $this->get_date_range(),
 				'format'     => 'json',
 				'token_auth' => $token,
 			)
@@ -756,7 +791,7 @@ final class Shyft_Dashboard_Matomo {
 	private function get_outlinks_report_params( int $site_id, bool $for_rest = false ): array {
 		$params = array(
 			'period'       => 'range',
-			'date'         => 'last90',
+			'date'         => $this->get_date_range(),
 			'flat'         => 1,
 			'filter_limit' => -1,
 		);
