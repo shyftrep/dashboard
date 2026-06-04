@@ -36,7 +36,11 @@ final class Shyft_Dashboard_Period {
 
 		$days = self::DEFAULT_DAYS;
 
-		if ( isset( $_GET[ self::QUERY_VAR ] ) ) {
+		$query_days = get_query_var( self::QUERY_VAR );
+
+		if ( is_string( $query_days ) && '' !== $query_days ) {
+			$days = absint( $query_days );
+		} elseif ( isset( $_GET[ self::QUERY_VAR ] ) ) {
 			$days = absint( wp_unslash( (string) $_GET[ self::QUERY_VAR ] ) );
 		}
 

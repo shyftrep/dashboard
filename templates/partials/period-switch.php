@@ -24,6 +24,8 @@ $active_days            = Shyft_Dashboard_Period::get_days();
 		<a
 			href="<?php echo esc_url( $url ); ?>"
 			class="shyft-period-switch__btn<?php echo $is_active ? ' is-active' : ''; ?>"
+			data-no-instant
+			data-turbo="false"
 			<?php echo $is_active ? ' aria-current="page"' : ''; ?>
 		>
 			<?php

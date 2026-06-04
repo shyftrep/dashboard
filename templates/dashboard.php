@@ -47,6 +47,7 @@ $period_label          = $period_label ?? Shyft_Dashboard_Period::get_label();
 <html <?php language_attributes(); ?> data-theme="light">
 <head>
 	<meta charset="<?php bloginfo( 'charset' ); ?>">
+	<meta http-equiv="Content-Type" content="text/html; charset=<?php bloginfo( 'charset' ); ?>">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="robots" content="noindex, nofollow">
 	<title><?php echo esc_html__( 'Dashboard', 'shyft-dashboard' ); ?> · <?php bloginfo( 'name' ); ?></title>

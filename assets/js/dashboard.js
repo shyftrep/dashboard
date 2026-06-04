@@ -56,6 +56,29 @@
 		});
 	}
 
+	function initPeriodNavigation() {
+		document.querySelectorAll('.shyft-period-switch__btn').forEach(function (link) {
+			link.addEventListener(
+				'click',
+				function (event) {
+					if (link.classList.contains('is-active')) {
+						return;
+					}
+
+					var href = link.getAttribute('href');
+					if (!href) {
+						return;
+					}
+
+					event.preventDefault();
+					event.stopImmediatePropagation();
+					window.location.assign(href);
+				},
+				true
+			);
+		});
+	}
+
 	function initForm() {
 		var form = document.querySelector('.shyft-form');
 		if (!form) {
@@ -83,6 +106,7 @@
 
 	document.addEventListener('DOMContentLoaded', function () {
 		initTheme();
+		initPeriodNavigation();
 		initForm();
 	});
 })();

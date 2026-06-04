@@ -26,6 +26,7 @@ final class Shyft_Dashboard_Routing {
 		add_action( 'init', array( self::class, 'maybe_flush_rewrite_rules' ), 20 );
 		add_filter( 'query_vars', array( self::class, 'add_query_vars' ) );
 		add_action( 'parse_request', array( self::class, 'prime_dashboard_query' ) );
+		add_action( 'send_headers', array( self::class, 'send_dashboard_headers' ), 0 );
 		add_action( 'wp_enqueue_scripts', array( self::class, 'enqueue_dashboard_assets' ), 5 );
 		add_action( 'wp_enqueue_scripts', array( self::class, 'isolate_dashboard_assets' ), 9999 );
 		add_action( 'template_redirect', array( self::class, 'maybe_render_dashboard' ), 0 );
@@ -90,7 +91,20 @@ final class Shyft_Dashboard_Routing {
 	 */
 	public static function add_query_vars( array $vars ): array {
 		$vars[] = self::QUERY_VAR;
+		$vars[] = Shyft_Dashboard_Period::QUERY_VAR;
 		return $vars;
+	}
+
+	/**
+	 * Sends HTML cache headers before any dashboard output (avoids plain-text rendering).
+	 */
+	public static function send_dashboard_headers(): void {
+		if ( ! self::is_dashboard_request() || headers_sent() ) {
+			return;
+		}
+
+		header( 'Content-Type: text/html; charset=' . get_bloginfo( 'charset' ) );
+		nocache_headers();
 	}
 
 	/**
@@ -269,7 +283,7 @@ final class Shyft_Dashboard_Routing {
 	 * Prints dashboard styles in the document head.
 	 */
 	public static function print_head_assets(): void {
-		self::enqueue_dashboard_assets();
+		self::ensure_dashboard_assets_enqueued();
 
 		if ( wp_style_is( 'shyft-dashboard-fonts', 'registered' ) || wp_style_is( 'shyft-dashboard-fonts', 'enqueued' ) ) {
 			wp_print_styles( array( 'shyft-dashboard-fonts', 'shyft-dashboard' ) );
@@ -291,7 +305,7 @@ final class Shyft_Dashboard_Routing {
 	 * Prints dashboard scripts before closing body.
 	 */
 	public static function print_footer_assets(): void {
-		self::enqueue_dashboard_assets();
+		self::ensure_dashboard_assets_enqueued();
 
 		if ( wp_script_is( 'shyft-dashboard', 'registered' ) || wp_script_is( 'shyft-dashboard', 'enqueued' ) ) {
 			wp_print_footer_scripts( array( 'shyft-dashboard' ) );
@@ -376,6 +390,17 @@ final class Shyft_Dashboard_Routing {
 		}
 
 		include $template;
+	}
+
+	/**
+	 * Enqueues dashboard assets and runs wp_enqueue_scripts once (theme hooks never fire on this route).
+	 */
+	private static function ensure_dashboard_assets_enqueued(): void {
+		self::enqueue_dashboard_assets();
+
+		if ( ! did_action( 'wp_enqueue_scripts' ) ) {
+			do_action( 'wp_enqueue_scripts' );
+		}
 	}
 
 	/**
