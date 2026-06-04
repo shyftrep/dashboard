@@ -322,29 +322,50 @@ final class Shyft_Dashboard_Routing {
 	 * Enqueues dashboard assets and renders the template.
 	 */
 	private static function render_dashboard(): void {
-		$leads           = new Shyft_Dashboard_Leads();
-		$site_status     = new Shyft_Dashboard_Site_Status();
-		$matomo          = new Shyft_Dashboard_Matomo();
-		$plugin_updates  = new Shyft_Dashboard_Plugin_Updates();
-		$change_req      = new Shyft_Dashboard_Change_Request();
-		$recent_activity = new Shyft_Dashboard_Recent_Activity();
-		$current_user    = wp_get_current_user();
-		$logo_url        = Shyft_Dashboard_Settings::get_logo_url();
-		$flash           = $change_req->get_flash_message();
-		$latest_activities = $recent_activity->get_display_activities();
+		$current_user      = wp_get_current_user();
+		$logo_url          = Shyft_Dashboard_Settings::get_logo_url();
 		$show_website_link = Shyft_Dashboard_Roles::can_edit_website( $current_user );
 		$website_url       = home_url( '/' );
+		$logout_url        = wp_logout_url( home_url( '/' ) );
+		$form_action       = admin_url( 'admin-post.php' );
 
-		// Preload data before output so PHP errors cannot corrupt the HTML response.
-		$new_leads_count       = $leads->count_new_submissions();
-		$recent_leads          = $leads->get_recent_submissions( 5 );
-		$status                = $site_status->get_status();
-		$analytics             = $matomo->get_analytics_data();
-		$matomo_stats_url      = $matomo->get_stats_url();
-		$recent_plugin_updates = $plugin_updates->get_recent_updates( 5 );
-		$categories            = $change_req->get_categories();
-		$logout_url            = wp_logout_url( home_url( '/' ) );
-		$form_action           = admin_url( 'admin-post.php' );
+		$new_leads_count       = 0;
+		$recent_leads          = array();
+		$status                = array(
+			'ssl'     => false,
+			'updates' => 0,
+			'php'     => PHP_VERSION,
+			'backup'  => false,
+		);
+		$analytics             = array( 'available' => false );
+		$matomo_stats_url      = home_url( '/wp-content/plugins/matomo/app/index.php' );
+		$recent_plugin_updates = array();
+		$categories            = array();
+		$flash                 = null;
+		$latest_activities     = array();
+
+		try {
+			$leads           = new Shyft_Dashboard_Leads();
+			$site_status     = new Shyft_Dashboard_Site_Status();
+			$matomo          = new Shyft_Dashboard_Matomo();
+			$plugin_updates  = new Shyft_Dashboard_Plugin_Updates();
+			$change_req      = new Shyft_Dashboard_Change_Request();
+			$recent_activity = new Shyft_Dashboard_Recent_Activity();
+
+			$new_leads_count       = $leads->count_new_submissions();
+			$recent_leads          = $leads->get_recent_submissions( 5 );
+			$status                = $site_status->get_status();
+			$analytics             = $matomo->get_analytics_data();
+			$matomo_stats_url      = $matomo->get_stats_url();
+			$recent_plugin_updates = $plugin_updates->get_recent_updates( 5 );
+			$categories            = $change_req->get_categories();
+			$flash                 = $change_req->get_flash_message();
+			$latest_activities     = $recent_activity->get_display_activities();
+		} catch ( Throwable $exception ) {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( 'SHYFT Dashboard render error: ' . $exception->getMessage() );
+			}
+		}
 
 		$template = SHYFT_DASHBOARD_PATH . 'templates/dashboard.php';
 

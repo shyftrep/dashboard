@@ -21,6 +21,7 @@ require_once SHYFT_DASHBOARD_PATH . 'includes/class-change-request.php';
 require_once SHYFT_DASHBOARD_PATH . 'includes/class-recent-activity.php';
 require_once SHYFT_DASHBOARD_PATH . 'includes/class-settings.php';
 require_once SHYFT_DASHBOARD_PATH . 'includes/class-updater.php';
+require_once SHYFT_DASHBOARD_PATH . 'includes/class-upgrade.php';
 
 /**
  * Registers hooks and coordinates plugin modules.
@@ -51,6 +52,8 @@ final class Shyft_Dashboard {
 	private function __construct() {
 		register_activation_hook( SHYFT_DASHBOARD_FILE, array( $this, 'activate' ) );
 		register_deactivation_hook( SHYFT_DASHBOARD_FILE, array( $this, 'deactivate' ) );
+
+		Shyft_Dashboard_Upgrade::register();
 
 		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
 		add_action( 'init', array( $this, 'init' ) );
@@ -87,10 +90,8 @@ final class Shyft_Dashboard {
 	 * Plugin activation callback.
 	 */
 	public function activate(): void {
-		Shyft_Dashboard_Roles::create_role();
-		Shyft_Dashboard_Routing::add_rewrite_rules();
-		Shyft_Dashboard_Change_Request::register_post_type();
-		flush_rewrite_rules();
+		Shyft_Dashboard_Upgrade::run();
+		update_option( Shyft_Dashboard_Upgrade::VERSION_OPTION, SHYFT_DASHBOARD_VERSION, false );
 	}
 
 	/**
