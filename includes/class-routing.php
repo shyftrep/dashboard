@@ -32,7 +32,8 @@ final class Shyft_Dashboard_Routing {
 		add_action( 'send_headers', array( self::class, 'send_dashboard_headers' ), 0 );
 		add_action( 'wp_enqueue_scripts', array( self::class, 'enqueue_dashboard_assets' ), 5 );
 		add_action( 'wp_enqueue_scripts', array( self::class, 'isolate_dashboard_assets' ), 9999 );
-		add_action( 'template_redirect', array( self::class, 'maybe_render_dashboard' ), PHP_INT_MIN );
+		add_action( 'template_redirect', array( self::class, 'maybe_prepare_dashboard' ), PHP_INT_MIN );
+		add_filter( 'template_include', array( self::class, 'filter_dashboard_template' ), PHP_INT_MAX );
 		add_filter( 'redirect_canonical', array( self::class, 'disable_canonical_redirect' ), 10, 2 );
 		add_filter( 'login_redirect', array( self::class, 'login_redirect' ), 10, 3 );
 		add_action( 'admin_init', array( self::class, 'block_wp_admin_for_kunde' ) );
@@ -58,7 +59,7 @@ final class Shyft_Dashboard_Routing {
 	 * Disables page-cache plugins for dashboard routes (before a poisoned cache entry is served).
 	 */
 	public static function bootstrap_dashboard_request(): void {
-		if ( ! self::matches_dashboard_uri() ) {
+		if ( ! self::matches_dashboard_uri() && ! Shyft_Dashboard_Request::matches_uri() ) {
 			return;
 		}
 
@@ -217,9 +218,9 @@ final class Shyft_Dashboard_Routing {
 	}
 
 	/**
-	 * Renders the dashboard template when the route matches.
+	 * Auth, headers and query flags before WordPress loads the dashboard template.
 	 */
-	public static function maybe_render_dashboard(): void {
+	public static function maybe_prepare_dashboard(): void {
 		self::maybe_redirect_legacy_period_url();
 
 		if ( ! self::is_dashboard_request() ) {
@@ -237,8 +238,32 @@ final class Shyft_Dashboard_Routing {
 
 		self::prepare_dashboard_response();
 		show_admin_bar( false );
+	}
+
+	/**
+	 * Swaps the theme template for the dashboard shell (normal WP lifecycle, no exit).
+	 *
+	 * @param string $template Path to the theme template.
+	 */
+	public static function filter_dashboard_template( string $template ): string {
+		if ( ! self::is_dashboard_request() ) {
+			return $template;
+		}
+
+		$shell = SHYFT_DASHBOARD_PATH . 'templates/dashboard-shell.php';
+
+		if ( ! file_exists( $shell ) ) {
+			return $template;
+		}
+
+		return $shell;
+	}
+
+	/**
+	 * Outputs the dashboard (called from dashboard-shell.php).
+	 */
+	public static function render_dashboard_template(): void {
 		self::render_dashboard();
-		exit;
 	}
 
 	/**
@@ -255,11 +280,6 @@ final class Shyft_Dashboard_Routing {
 		}
 
 		status_header( 200 );
-
-		while ( ob_get_level() > 0 ) {
-			ob_end_clean();
-		}
-
 		self::send_dashboard_response_headers();
 	}
 
@@ -267,46 +287,14 @@ final class Shyft_Dashboard_Routing {
 	 * Returns the dashboard path segment relative to the site home (e.g. "dashboard").
 	 */
 	private static function get_dashboard_request_path(): string {
-		if ( empty( $_SERVER['REQUEST_URI'] ) ) {
-			return '';
-		}
-
-		$path = wp_parse_url( wp_unslash( (string) $_SERVER['REQUEST_URI'] ), PHP_URL_PATH );
-
-		if ( ! is_string( $path ) ) {
-			return '';
-		}
-
-		$path = trim( $path, '/' );
-		$home = wp_parse_url( home_url( '/' ), PHP_URL_PATH );
-		$home = is_string( $home ) ? trim( $home, '/' ) : '';
-
-		if ( '' !== $home ) {
-			if ( $path === $home ) {
-				$path = '';
-			} elseif ( str_starts_with( $path, $home . '/' ) ) {
-				$path = substr( $path, strlen( $home ) + 1 );
-			}
-		}
-
-		return trim( $path, '/' );
+		return Shyft_Dashboard_Request::get_path_segment();
 	}
 
 	/**
 	 * Checks whether the request URI targets the dashboard route.
 	 */
 	private static function matches_dashboard_uri(): bool {
-		$path = self::get_dashboard_request_path();
-
-		if ( 'dashboard' === $path ) {
-			return true;
-		}
-
-		if ( preg_match( '#^dashboard/(7|30|90)$#', $path ) ) {
-			return true;
-		}
-
-		return (bool) preg_match( '#(?:^|/)dashboard/?$#', $path );
+		return Shyft_Dashboard_Request::matches_uri();
 	}
 
 	/**

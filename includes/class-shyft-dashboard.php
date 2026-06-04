@@ -12,6 +12,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 require_once SHYFT_DASHBOARD_PATH . 'includes/class-plugin-folder.php';
+require_once SHYFT_DASHBOARD_PATH . 'includes/class-dashboard-request.php';
+require_once SHYFT_DASHBOARD_PATH . 'includes/class-cache-compat.php';
 require_once SHYFT_DASHBOARD_PATH . 'includes/class-period.php';
 require_once SHYFT_DASHBOARD_PATH . 'includes/class-roles.php';
 require_once SHYFT_DASHBOARD_PATH . 'includes/class-routing.php';
@@ -78,6 +80,7 @@ final class Shyft_Dashboard {
 	 */
 	public function init(): void {
 		Shyft_Dashboard_Roles::register();
+		Shyft_Dashboard_Cache_Compat::register();
 		Shyft_Dashboard_Routing::register();
 		Shyft_Dashboard_Leads::register();
 		Shyft_Dashboard_Site_Status::register();
