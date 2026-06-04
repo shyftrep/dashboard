@@ -57,9 +57,11 @@ final class Shyft_Dashboard_Upgrade {
 
 		$plugins = $options['plugins'] ?? array();
 
-		if ( ! is_array( $plugins ) || ! in_array( SHYFT_DASHBOARD_BASENAME, $plugins, true ) ) {
+		if ( ! is_array( $plugins ) || ! Shyft_Dashboard_Plugin_Folder::is_our_plugin_in_list( $plugins ) ) {
 			return;
 		}
+
+		Shyft_Dashboard_Plugin_Folder::normalize_to_canonical();
 
 		update_option( self::PENDING_OPTION, '1', false );
 

@@ -264,8 +264,8 @@ final class Shyft_Dashboard_Settings {
 	public static function render_update_check_field( array $args ): void {
 		unset( $args );
 
-		$plugin_slug   = Shyft_Dashboard_Updater::get_plugin_slug();
-		$expected_slug = 'shyft-dashboard';
+		$plugin_slug   = Shyft_Dashboard_Plugin_Folder::get_installed_slug();
+		$expected_slug = Shyft_Dashboard_Plugin_Folder::SLUG;
 		$check_url     = admin_url( 'admin-post.php?action=shyft_dashboard_check_updates' );
 		$check_url     = wp_nonce_url( $check_url, 'shyft_dashboard_check_updates' );
 		$puc_url       = Shyft_Dashboard_Updater::get_manual_check_url();

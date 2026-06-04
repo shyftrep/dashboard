@@ -49,12 +49,10 @@ final class Shyft_Dashboard_Updater {
 
 		require_once $library;
 
-		$slug = self::get_plugin_slug();
-
 		self::$update_checker = \YahnisElsts\PluginUpdateChecker\v5\PucFactory::buildUpdateChecker(
 			self::GITHUB_REPO_URL,
 			SHYFT_DASHBOARD_FILE,
-			$slug
+			self::get_plugin_slug()
 		);
 
 		self::$update_checker->setCheckPeriod( 3 );
@@ -132,12 +130,10 @@ final class Shyft_Dashboard_Updater {
 	}
 
 	/**
-	 * Plugin folder slug (must match wp-content/plugins/<slug>/).
+	 * Canonical plugin slug for GitHub releases (always shyft-dashboard).
 	 */
 	public static function get_plugin_slug(): string {
-		$slug = dirname( SHYFT_DASHBOARD_BASENAME );
-
-		return is_string( $slug ) && '' !== $slug && '.' !== $slug ? $slug : 'shyft-dashboard';
+		return defined( 'SHYFT_DASHBOARD_SLUG' ) ? SHYFT_DASHBOARD_SLUG : Shyft_Dashboard_Plugin_Folder::SLUG;
 	}
 
 	/**

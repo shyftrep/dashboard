@@ -11,6 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+require_once SHYFT_DASHBOARD_PATH . 'includes/class-plugin-folder.php';
 require_once SHYFT_DASHBOARD_PATH . 'includes/class-period.php';
 require_once SHYFT_DASHBOARD_PATH . 'includes/class-roles.php';
 require_once SHYFT_DASHBOARD_PATH . 'includes/class-routing.php';
@@ -54,6 +55,7 @@ final class Shyft_Dashboard {
 		register_activation_hook( SHYFT_DASHBOARD_FILE, array( $this, 'activate' ) );
 		register_deactivation_hook( SHYFT_DASHBOARD_FILE, array( $this, 'deactivate' ) );
 
+		Shyft_Dashboard_Plugin_Folder::register();
 		Shyft_Dashboard_Upgrade::register();
 
 		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
