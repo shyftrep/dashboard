@@ -690,6 +690,7 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 	padding: 20px 22px;
 	position: relative;
 	box-shadow: var(--shyft-shadow-sm);
+	color: var(--shyft-card-text);
 	transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
@@ -755,7 +756,7 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 
 .shyft-activity-card__message {
 	margin: 0 0 8px;
-	color: var(--shyft-text);
+	color: var(--shyft-card-text);
 	font-size: 16px;
 	font-weight: 500;
 	line-height: 1.45;
@@ -763,18 +764,19 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 
 .shyft-activity-card__meta {
 	margin: 0;
-	color: var(--shyft-text-muted);
+	color: var(--shyft-card-text);
 	font-size: 13px;
 	font-weight: 400;
+	opacity: 0.65;
 }
 
 .shyft-activity-card__badge {
 	flex-shrink: 0;
 	align-self: flex-start;
-	background: var(--shyft-card-alt);
+	background: var(--shyft-accent-soft);
 	border: 1px solid var(--shyft-border);
 	border-radius: 999px;
-	color: var(--shyft-text-muted);
+	color: var(--shyft-card-text);
 	font-size: 11px;
 	font-weight: 600;
 	letter-spacing: 0.05em;
