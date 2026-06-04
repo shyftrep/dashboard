@@ -339,6 +339,10 @@ final class Shyft_Dashboard_Routing {
 	 */
 	public static function login_redirect( string $redirect_to, string $requested_redirect_to, $user ): string {
 		if ( $user instanceof WP_User && Shyft_Dashboard_Roles::uses_dashboard( $user ) ) {
+			if ( Shyft_Dashboard_Warmup::needs_warmup( $user ) ) {
+				return Shyft_Dashboard_Warmup::get_warmup_url();
+			}
+
 			return self::get_dashboard_url();
 		}
 
@@ -361,7 +365,11 @@ final class Shyft_Dashboard_Routing {
 			return;
 		}
 
-		wp_safe_redirect( self::get_dashboard_url() );
+		$target = Shyft_Dashboard_Warmup::needs_warmup()
+			? Shyft_Dashboard_Warmup::get_warmup_url()
+			: self::get_dashboard_url();
+
+		wp_safe_redirect( $target );
 		exit;
 	}
 

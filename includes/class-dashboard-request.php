@@ -22,6 +22,10 @@ final class Shyft_Dashboard_Request {
 	public static function matches_uri(): bool {
 		$path = self::get_path_segment();
 
+		if ( 'dashboard-warmup' === $path ) {
+			return true;
+		}
+
 		if ( 'dashboard' === $path ) {
 			return true;
 		}

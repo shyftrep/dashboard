@@ -17,6 +17,7 @@ require_once SHYFT_DASHBOARD_PATH . 'includes/class-cache-compat.php';
 require_once SHYFT_DASHBOARD_PATH . 'includes/class-period.php';
 require_once SHYFT_DASHBOARD_PATH . 'includes/class-roles.php';
 require_once SHYFT_DASHBOARD_PATH . 'includes/class-routing.php';
+require_once SHYFT_DASHBOARD_PATH . 'includes/class-warmup.php';
 require_once SHYFT_DASHBOARD_PATH . 'includes/class-leads.php';
 require_once SHYFT_DASHBOARD_PATH . 'includes/class-site-status.php';
 require_once SHYFT_DASHBOARD_PATH . 'includes/class-matomo.php';
@@ -82,6 +83,7 @@ final class Shyft_Dashboard {
 		Shyft_Dashboard_Roles::register();
 		Shyft_Dashboard_Cache_Compat::register();
 		Shyft_Dashboard_Routing::register();
+		Shyft_Dashboard_Warmup::register();
 		Shyft_Dashboard_Leads::register();
 		Shyft_Dashboard_Site_Status::register();
 		Shyft_Dashboard_Matomo::register();

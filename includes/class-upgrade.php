@@ -77,6 +77,7 @@ final class Shyft_Dashboard_Upgrade {
 	public static function run(): void {
 		Shyft_Dashboard_Roles::create_role();
 		Shyft_Dashboard_Routing::add_rewrite_rules();
+		Shyft_Dashboard_Warmup::add_rewrite_rules();
 		flush_rewrite_rules( false );
 
 		update_option( 'shyft_dashboard_rewrite_version', SHYFT_DASHBOARD_VERSION, false );

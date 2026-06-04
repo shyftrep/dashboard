@@ -93,6 +93,10 @@ final class Shyft_Dashboard_Cache_Compat {
 	 * Whether the current request is a dashboard route.
 	 */
 	private static function is_dashboard_route(): bool {
+		if ( class_exists( 'Shyft_Dashboard_Warmup', false ) && Shyft_Dashboard_Warmup::is_warmup_request() ) {
+			return true;
+		}
+
 		if ( class_exists( 'Shyft_Dashboard_Routing', false ) && Shyft_Dashboard_Routing::is_dashboard_request() ) {
 			return true;
 		}
