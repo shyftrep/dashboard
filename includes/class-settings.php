@@ -244,10 +244,11 @@ final class Shyft_Dashboard_Settings {
 			?>
 		</p>
 		<p>
-			<?php esc_html_e( 'Bei einem öffentlichen Repository ist kein Token nötig. Für ein privates Repository: Fine-grained Personal Access Token mit Lesezugriff auf dieses Repository.', 'shyft-dashboard' ); ?>
+			<?php esc_html_e( 'Bei einem öffentlichen Repository ist kein Token nötig.', 'shyft-dashboard' ); ?>
 		</p>
 		<p>
-			<?php esc_html_e( 'Alternativ (empfohlen für alle Kundenseiten): Token in wp-config.php setzen – siehe Hinweis beim Feld unten. Niemals im Plugin-Code oder in Git speichern.', 'shyft-dashboard' ); ?>
+			<strong><?php esc_html_e( 'Privates Repository:', 'shyft-dashboard' ); ?></strong>
+			<?php esc_html_e( 'Token in die Datei includes/github-token.php eintragen – gilt auf allen Sites automatisch nach einem Plugin-Update.', 'shyft-dashboard' ); ?>
 		</p>
 		<p>
 			<?php esc_html_e( 'Der Link „Auf Updates prüfen“ steht unter Plugins in der Zeile „SHYFT Dashboard“ (nicht bei WordPress-Core-Updates).', 'shyft-dashboard' ); ?>
@@ -300,7 +301,15 @@ final class Shyft_Dashboard_Settings {
 				</tr>
 				<tr>
 					<th scope="row"><?php esc_html_e( 'GitHub-Token', 'shyft-dashboard' ); ?></th>
-					<td><?php echo $has_token ? esc_html__( 'gesetzt', 'shyft-dashboard' ) : esc_html__( 'fehlt', 'shyft-dashboard' ); ?></td>
+					<td>
+						<?php
+						if ( $has_token ) {
+							echo esc_html( self::get_github_token_source_label() );
+						} else {
+							esc_html_e( 'fehlt – includes/github-token.php ausfüllen', 'shyft-dashboard' );
+						}
+						?>
+					</td>
 				</tr>
 			</tbody>
 		</table>
@@ -352,31 +361,55 @@ final class Shyft_Dashboard_Settings {
 	 * @param array<string, string> $args Field arguments.
 	 */
 	public static function render_github_token_field( array $args ): void {
-		$option = $args['option'];
+		$option   = $args['option'];
+		$locked   = self::is_github_token_locked();
+		$plugin_file = SHYFT_DASHBOARD_PATH . 'includes/github-token.php';
 
-		if ( self::has_github_token_constant() ) {
+		if ( self::has_github_token_plugin_file() ) {
 			?>
 			<p class="description">
-				<strong><?php esc_html_e( 'Token ist in wp-config.php gesetzt (SHYFT_DASHBOARD_GITHUB_TOKEN).', 'shyft-dashboard' ); ?></strong>
-				<?php esc_html_e( 'Das Feld unten wird ignoriert.', 'shyft-dashboard' ); ?>
+				<strong><?php esc_html_e( 'Token ist in includes/github-token.php hinterlegt.', 'shyft-dashboard' ); ?></strong>
+				<?php esc_html_e( 'Das Feld unten ist nur ein optionaler Fallback.', 'shyft-dashboard' ); ?>
 			</p>
+			<?php
+		} elseif ( self::has_github_token_constant() ) {
+			?>
+			<p class="description">
+				<strong><?php esc_html_e( 'Token ist in wp-config.php gesetzt.', 'shyft-dashboard' ); ?></strong>
+			</p>
+			<?php
+		} else {
+			?>
+			<p class="description">
+				<?php
+				printf(
+					/* translators: %s: path to token file */
+					esc_html__( 'Öffne die Datei %s und trage deinen GitHub-Token zwischen die Anführungszeichen ein:', 'shyft-dashboard' ),
+					'<code>includes/github-token.php</code>'
+				);
+				?>
+			</p>
+			<pre class="shyft-code-hint" style="background:#f6f7f7;padding:12px;max-width:640px;overflow:auto;"><?php echo esc_html( "return 'dein_github_token';" ); ?></pre>
 			<?php
 		}
 
-		$value = self::has_github_token_constant() ? '' : (string) get_option( $option, '' );
+		$value = $locked ? '' : (string) get_option( $option, '' );
 		printf(
-			'<input type="password" id="%1$s" name="%1$s" value="%2$s" class="regular-text" autocomplete="off"%3$s />',
+			'<p><label for="%1$s">%2$s</label></p><input type="password" id="%1$s" name="%1$s" value="%3$s" class="regular-text" autocomplete="off"%4$s />',
 			esc_attr( $option ),
+			esc_html__( 'Fallback: Token in Datenbank (optional)', 'shyft-dashboard' ),
 			esc_attr( $value ),
-			self::has_github_token_constant() ? ' disabled' : ''
+			$locked ? ' disabled' : ''
 		);
 		?>
 		<p class="description">
-			<?php esc_html_e( 'Nur für private GitHub-Repositories. Token wird nur serverseitig für Update-Prüfungen verwendet.', 'shyft-dashboard' ); ?>
-		</p>
-		<p class="description">
-			<code>define( 'SHYFT_DASHBOARD_GITHUB_TOKEN', 'ghp_…' );</code>
-			<?php esc_html_e( 'in wp-config.php oberhalb von „That\'s all, stop editing!“ – nicht ins Plugin und nicht in Git.', 'shyft-dashboard' ); ?>
+			<?php
+			printf(
+				/* translators: %s: file path */
+				esc_html__( 'Empfohlen: %s – wird mit jedem Release auf alle Kundenseiten ausgerollt.', 'shyft-dashboard' ),
+				'<code>' . esc_html( $plugin_file ) . '</code>'
+			);
+			?>
 		</p>
 		<?php
 	}
@@ -473,7 +506,7 @@ final class Shyft_Dashboard_Settings {
 	}
 
 	/**
-	 * Whether the GitHub token is defined via wp-config.php (not stored in the database).
+	 * Whether the GitHub token is defined via wp-config.php.
 	 */
 	public static function has_github_token_constant(): bool {
 		return defined( 'SHYFT_DASHBOARD_GITHUB_TOKEN' )
@@ -482,13 +515,69 @@ final class Shyft_Dashboard_Settings {
 	}
 
 	/**
+	 * Whether a token is set in includes/github-token.php.
+	 */
+	public static function has_github_token_plugin_file(): bool {
+		return '' !== self::get_github_token_from_plugin_file();
+	}
+
+	/**
+	 * Token from includes/github-token.php (primary for multi-site rollouts).
+	 */
+	public static function get_github_token_from_plugin_file(): string {
+		static $cached = null;
+
+		if ( null !== $cached ) {
+			return $cached;
+		}
+
+		$file = SHYFT_DASHBOARD_PATH . 'includes/github-token.php';
+
+		if ( ! is_readable( $file ) ) {
+			$cached = '';
+			return $cached;
+		}
+
+		$value = include $file;
+		$cached = is_string( $value ) ? trim( $value ) : '';
+
+		return $cached;
+	}
+
+	/**
+	 * Whether the token is fixed outside the settings form.
+	 */
+	public static function is_github_token_locked(): bool {
+		return self::has_github_token_constant() || self::has_github_token_plugin_file();
+	}
+
+	/**
+	 * Human-readable label for where the active token comes from.
+	 */
+	public static function get_github_token_source_label(): string {
+		if ( self::has_github_token_constant() ) {
+			return (string) __( 'gesetzt (wp-config.php)', 'shyft-dashboard' );
+		}
+
+		if ( self::has_github_token_plugin_file() ) {
+			return (string) __( 'gesetzt (includes/github-token.php)', 'shyft-dashboard' );
+		}
+
+		return (string) __( 'gesetzt (Einstellungen)', 'shyft-dashboard' );
+	}
+
+	/**
 	 * Returns the GitHub token for private repository updates.
 	 *
-	 * Priority: wp-config constant, then value from plugin settings.
+	 * Priority: wp-config → includes/github-token.php → Einstellungen.
 	 */
 	public static function get_github_token(): string {
 		if ( self::has_github_token_constant() ) {
 			return SHYFT_DASHBOARD_GITHUB_TOKEN;
+		}
+
+		if ( self::has_github_token_plugin_file() ) {
+			return self::get_github_token_from_plugin_file();
 		}
 
 		return (string) get_option( 'shyft_dashboard_github_token', '' );
