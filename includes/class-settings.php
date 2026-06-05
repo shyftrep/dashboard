@@ -20,6 +20,7 @@ final class Shyft_Dashboard_Settings {
 	public const PAGE_SLUG    = 'shyft-dashboard-settings';
 
 	public const DEFAULT_LOGO  = '';
+	public const BUNDLED_LOGO_SOURCE = 'https://shyft.rocks/wp-content/uploads/2026/02/shyft-3-e1780613857523.png';
 	public const MATOMO_SITE_ID = '1';
 
 	/**
