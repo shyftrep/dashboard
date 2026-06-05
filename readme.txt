@@ -3,7 +3,7 @@ Contributors: shyftrep
 Tags: dashboard, shyft, kunden
 Requires at least: 6.4
 Requires PHP: 8.1
-Stable tag: 2.1.6
+Stable tag: 2.1.7
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -14,6 +14,9 @@ Gebrandetes Kunden-Dashboard unter /dashboard mit Anfragen, Website-Status, Mato
 Das SHYFT Dashboard bietet Kundinnen und Kunden einen eigenen Bereich unter /dashboard – ohne Zugriff auf das WordPress-Backend.
 
 == Changelog ==
+
+= 2.1.7 =
+* Design: Dezente Kacheln (#EAE7E4), keine Rundungen, keine Schatten.
 
 = 2.1.6 =
 * Logo: Neues transparentes shyft.-Logo von shyft.rocks im Plugin abgelegt.

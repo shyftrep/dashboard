@@ -10,9 +10,10 @@
 	--shyft-font-body: "Bricolage Grotesque", system-ui, sans-serif;
 	--shyft-font-display: "Instrument Serif", Georgia, serif;
 	--shyft-font-heading: "Bricolage Grotesque", system-ui, sans-serif;
-	--shyft-radius: 12px;
-	--shyft-radius-lg: 16px;
-	--shyft-radius-pill: 999px;
+	--shyft-radius: 0;
+	--shyft-radius-lg: 0;
+	--shyft-radius-pill: 0;
+	--shyft-tile-bg: #EAE7E4;
 	--shyft-max-width: 1280px;
 	--shyft-spacing: 24px;
 	--shyft-grid-line: rgba(23, 42, 57, 0.16);
@@ -26,11 +27,12 @@
 	--shyft-bg: #E0DBD7;
 	--shyft-bg-deep: #D8D2CD;
 	--shyft-bg-glow: rgba(252, 87, 59, 0.08);
-	--shyft-surface: #F5F2EF;
-	--shyft-card: #F5F2EF;
-	--shyft-card-alt: rgba(255, 255, 255, 0.55);
-	--shyft-border: rgba(23, 42, 57, 0.12);
-	--shyft-border-strong: rgba(23, 42, 57, 0.2);
+	--shyft-tile-bg: #EAE7E4;
+	--shyft-surface: #EAE7E4;
+	--shyft-card: #EAE7E4;
+	--shyft-card-alt: #EAE7E4;
+	--shyft-border: rgba(23, 42, 57, 0.08);
+	--shyft-border-strong: rgba(23, 42, 57, 0.12);
 	--shyft-text: #172A39;
 	--shyft-text-soft: rgba(23, 42, 57, 0.86);
 	--shyft-text-muted: rgba(23, 42, 57, 0.58);
@@ -60,27 +62,28 @@
 	--shyft-warning: #FC573B;
 	--shyft-warning-soft: rgba(252, 87, 59, 0.12);
 	--shyft-on-accent: #FFFFFF;
-	--shyft-shadow-sm: 0 1px 2px rgba(23, 42, 57, 0.05);
-	--shyft-shadow: 0 1px 3px rgba(23, 42, 57, 0.06), 0 10px 28px rgba(23, 42, 57, 0.08);
-	--shyft-chart-grid: rgba(23, 42, 57, 0.08);
-	--shyft-footer-bg: rgba(245, 242, 239, 0.72);
+	--shyft-shadow-sm: none;
+	--shyft-shadow: none;
+	--shyft-chart-grid: rgba(23, 42, 57, 0.06);
+	--shyft-footer-bg: #E0DBD7;
 	--shyft-input-hover-border: rgba(23, 42, 57, 0.22);
 	--shyft-tooltip-bg: #172A39;
 	--shyft-tooltip-text: #E0DBD7;
 	--shyft-header-bg: #E0DBD7;
-	--shyft-header-border: rgba(23, 42, 57, 0.14);
+	--shyft-header-border: rgba(23, 42, 57, 0.1);
 	--shyft-header-text: #172A39;
 	--shyft-header-text-muted: rgba(23, 42, 57, 0.58);
-	--shyft-grid-line: rgba(23, 42, 57, 0.16);
+	--shyft-grid-line: rgba(23, 42, 57, 0.1);
 }
 
 [data-theme="dark"] {
 	--shyft-bg: #172A39;
 	--shyft-bg-deep: #0F1F2B;
 	--shyft-bg-glow: rgba(252, 87, 59, 0.08);
+	--shyft-tile-bg: #1E3344;
 	--shyft-surface: #1E3344;
 	--shyft-card: #1E3344;
-	--shyft-card-alt: #243A4D;
+	--shyft-card-alt: #1E3344;
 	--shyft-border: rgba(224, 219, 215, 0.1);
 	--shyft-border-strong: rgba(224, 219, 215, 0.16);
 	--shyft-text: #FFFFFF;
@@ -206,7 +209,7 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 	font-weight: 500;
 	background: transparent;
 	border: 1px solid var(--shyft-header-border);
-	border-radius: var(--shyft-radius-pill);
+	border-radius: 0;
 	padding: 9px 18px;
 	transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
 }
@@ -244,11 +247,11 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 	align-items: center;
 	flex-shrink: 0;
 	padding: 3px;
-	background: var(--shyft-surface);
-	border: 1px solid var(--shyft-border-strong);
-	border-radius: 999px;
+	background: var(--shyft-tile-bg, var(--shyft-surface));
+	border: 1px solid var(--shyft-border);
+	border-radius: 0;
 	gap: 2px;
-	box-shadow: var(--shyft-shadow-sm);
+	box-shadow: none;
 }
 
 .shyft-period-switch.shyft-period-switch--header {
@@ -272,7 +275,7 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 	font-weight: 500;
 	line-height: 1.2;
 	padding: 8px 12px;
-	border-radius: 999px;
+	border-radius: 0;
 	text-decoration: none;
 	transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 }
@@ -284,7 +287,7 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 .shyft-period-switch__btn.is-active {
 	background: var(--shyft-primary);
 	color: var(--shyft-on-accent);
-	box-shadow: var(--shyft-shadow-sm);
+	box-shadow: none;
 }
 
 .shyft-period-switch__btn:focus-visible {
@@ -297,11 +300,11 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 	align-items: center;
 	flex-shrink: 0;
 	padding: 3px;
-	background: var(--shyft-surface);
-	border: 1px solid var(--shyft-border-strong);
-	border-radius: 999px;
+	background: var(--shyft-tile-bg, var(--shyft-surface));
+	border: 1px solid var(--shyft-border);
+	border-radius: 0;
 	gap: 2px;
-	box-shadow: var(--shyft-shadow-sm);
+	box-shadow: none;
 }
 
 .shyft-theme-switch.shyft-theme-switch--header {
@@ -323,7 +326,7 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 	justify-content: center;
 	line-height: 0;
 	padding: 8px 10px;
-	border-radius: 999px;
+	border-radius: 0;
 	transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -340,7 +343,7 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 .shyft-theme-switch__btn.is-active {
 	background: var(--shyft-primary);
 	color: var(--shyft-on-accent);
-	box-shadow: var(--shyft-shadow-sm);
+	box-shadow: none;
 }
 
 .shyft-theme-switch__btn:focus-visible {
@@ -354,19 +357,18 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 	font-size: 14px;
 	font-weight: 500;
 	border: 1px solid var(--shyft-primary);
-	border-radius: var(--shyft-radius-pill);
+	border-radius: 0;
 	padding: 9px 18px;
 	background: var(--shyft-primary);
-	box-shadow: var(--shyft-shadow-sm);
-	transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+	box-shadow: none;
+	transition: background 0.2s ease, border-color 0.2s ease;
 }
 
 .shyft-dashboard__website-link:hover,
 .shyft-dashboard__website-link:focus {
 	background: var(--shyft-primary-hover);
 	color: var(--shyft-on-accent);
-	transform: translateY(-1px);
-	box-shadow: var(--shyft-shadow);
+	box-shadow: none;
 }
 
 .shyft-dashboard__website-hint {
@@ -382,22 +384,21 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 	align-items: center;
 	background: var(--shyft-primary);
 	border: 1px solid var(--shyft-primary);
-	border-radius: var(--shyft-radius-pill);
+	border-radius: 0;
 	color: var(--shyft-on-accent);
 	font-size: 15px;
 	font-weight: 500;
 	padding: 12px 24px;
 	text-decoration: none;
-	box-shadow: var(--shyft-shadow-sm);
-	transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+	box-shadow: none;
+	transition: background 0.2s ease, border-color 0.2s ease;
 }
 
 .shyft-dashboard__website-cta:hover,
 .shyft-dashboard__website-cta:focus {
 	background: var(--shyft-primary-hover);
 	color: var(--shyft-on-accent);
-	transform: translateY(-1px);
-	box-shadow: var(--shyft-shadow);
+	box-shadow: none;
 }
 
 .shyft-dashboard__website-note {
@@ -491,11 +492,11 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 .shyft-dashboard__notice {
 	margin-bottom: 24px;
 	padding: 14px 18px;
-	border-radius: var(--shyft-radius);
+	border-radius: 0;
 	border: 1px solid var(--shyft-border);
 	font-size: 15px;
-	background: var(--shyft-surface);
-	box-shadow: var(--shyft-shadow-sm);
+	background: var(--shyft-tile-bg, var(--shyft-surface));
+	box-shadow: none;
 }
 
 .shyft-dashboard__notice--success {
@@ -579,12 +580,12 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 	gap: 14px;
 	padding: 16px 18px;
 	border: 1px solid var(--shyft-border);
-	border-radius: var(--shyft-radius);
-	background: var(--shyft-card-alt);
+	border-radius: 0;
+	background: var(--shyft-tile-bg, var(--shyft-card-alt));
 }
 
 .shyft-task--done {
-	background: var(--shyft-surface);
+	background: var(--shyft-tile-bg, var(--shyft-surface));
 }
 
 .shyft-task--done .shyft-task__title {
@@ -615,9 +616,9 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 	width: 22px;
 	height: 22px;
 	margin-top: 2px;
-	border: 2px solid var(--shyft-border-strong);
-	border-radius: 6px;
-	background: var(--shyft-surface);
+	border: 1px solid var(--shyft-border);
+	border-radius: 0;
+	background: var(--shyft-bg);
 	transition: border-color 0.15s ease, background 0.15s ease;
 }
 
@@ -656,7 +657,7 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 .shyft-task__status {
 	flex-shrink: 0;
 	padding: 4px 10px;
-	border-radius: 999px;
+	border-radius: 0;
 	font-size: 12px;
 	font-weight: 600;
 }
@@ -731,28 +732,27 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 	display: flex;
 	align-items: flex-start;
 	gap: 14px;
-	background: var(--shyft-surface);
+	background: var(--shyft-tile-bg, var(--shyft-surface));
 	border: 1px solid var(--shyft-border);
-	border-left: 3px solid var(--shyft-activity-line-default, var(--shyft-accent));
-	border-radius: var(--shyft-radius-lg);
+	border-radius: 0;
 	padding: 20px 22px;
-	box-shadow: var(--shyft-shadow-sm);
+	box-shadow: none;
 }
 
 .shyft-activity-card--update {
-	border-left-color: var(--shyft-activity-line-update, var(--shyft-primary));
+	border-color: var(--shyft-border);
 }
 
 .shyft-activity-card--security {
-	border-left-color: var(--shyft-activity-line-security, var(--shyft-accent));
+	border-color: var(--shyft-border);
 }
 
 .shyft-activity-card--backup {
-	border-left-color: var(--shyft-activity-line-backup, var(--shyft-text-muted));
+	border-color: var(--shyft-border);
 }
 
 .shyft-activity-card--performance {
-	border-left-color: var(--shyft-activity-line-performance, var(--shyft-accent));
+	border-color: var(--shyft-border);
 }
 
 .shyft-activity-card__icon {
@@ -767,14 +767,14 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 .shyft-activity-card__badge {
 	flex-shrink: 0;
 	align-self: flex-start;
-	background: var(--shyft-accent-soft);
+	background: transparent;
 	border: 0;
-	border-radius: var(--shyft-radius-pill);
-	color: var(--shyft-accent);
+	border-radius: 0;
+	color: var(--shyft-text-muted);
 	font-size: 10px;
 	font-weight: 600;
 	letter-spacing: 0.06em;
-	padding: 4px 10px;
+	padding: 0;
 	text-transform: uppercase;
 }
 
@@ -800,10 +800,10 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 }
 
 .shyft-metrics-grid .shyft-card--metric {
-	background: var(--shyft-surface);
+	background: var(--shyft-tile-bg, var(--shyft-surface));
 	border: 1px solid var(--shyft-border);
-	border-radius: var(--shyft-radius-lg);
-	box-shadow: var(--shyft-shadow-sm);
+	border-radius: 0;
+	box-shadow: none;
 	padding: 22px 24px;
 }
 
@@ -827,16 +827,16 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 }
 
 .shyft-card {
-	background: var(--shyft-surface);
+	background: var(--shyft-tile-bg, var(--shyft-surface));
 	border: 1px solid var(--shyft-border);
-	border-radius: var(--shyft-radius-lg);
+	border-radius: 0;
 	padding: 24px;
-	box-shadow: var(--shyft-shadow-sm);
-	transition: box-shadow 0.2s ease, background 0.25s ease, border-color 0.25s ease;
+	box-shadow: none;
+	transition: background 0.25s ease, border-color 0.25s ease;
 }
 
 .shyft-card--panel:hover {
-	box-shadow: var(--shyft-shadow);
+	box-shadow: none;
 }
 
 .shyft-card--metric {
@@ -876,18 +876,7 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 }
 
 .shyft-card--metric::before {
-	content: "";
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	height: 3px;
-	background: var(
-		--shyft-metric-line-gradient,
-		linear-gradient(90deg, var(--shyft-accent), var(--shyft-accent-fade))
-	);
-	border-radius: var(--shyft-radius-lg) var(--shyft-radius-lg) 0 0;
-	opacity: 0.95;
+	display: none;
 }
 
 .shyft-card__label {
@@ -954,8 +943,8 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 	color: var(--shyft-text-muted);
 	font-size: 12px;
 	font-weight: 400;
-	background: var(--shyft-card-alt);
-	border-radius: 6px;
+	background: var(--shyft-bg);
+	border-radius: 0;
 	padding: 2px 7px;
 	vertical-align: middle;
 }
@@ -1017,14 +1006,14 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 .shyft-status-list__value.is-ok {
 	color: var(--shyft-status-success, var(--shyft-success));
 	background: var(--shyft-status-success-soft, var(--shyft-success-soft));
-	border-radius: 999px;
+	border-radius: 0;
 	padding: 3px 10px;
 }
 
 .shyft-status-list__value.is-warn {
 	color: var(--shyft-warning);
 	background: var(--shyft-warning-soft);
-	border-radius: 999px;
+	border-radius: 0;
 	padding: 3px 10px;
 }
 
@@ -1056,14 +1045,14 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 
 .shyft-form__input {
 	width: 100%;
-	background: var(--shyft-card-alt);
-	border: 1px solid var(--shyft-border-strong);
-	border-radius: var(--shyft-radius);
+	background: var(--shyft-bg);
+	border: 1px solid var(--shyft-border);
+	border-radius: 0;
 	color: var(--shyft-text);
 	font-family: var(--shyft-font-body);
 	font-size: 15px;
 	padding: 12px 14px;
-	transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+	transition: border-color 0.2s ease, background 0.2s ease;
 }
 
 .shyft-form__input:hover {
@@ -1072,9 +1061,9 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 
 .shyft-form__input:focus {
 	outline: none;
-	border-color: var(--shyft-accent);
-	background: var(--shyft-surface);
-	box-shadow: 0 0 0 3px var(--shyft-accent-soft);
+	border-color: var(--shyft-text-muted);
+	background: var(--shyft-bg);
+	box-shadow: none;
 }
 
 .shyft-form__textarea {
@@ -1088,9 +1077,9 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 }
 
 .shyft-form__file::file-selector-button {
-	background: var(--shyft-surface);
-	border: 1px solid var(--shyft-border-strong);
-	border-radius: 8px;
+	background: var(--shyft-tile-bg, var(--shyft-surface));
+	border: 1px solid var(--shyft-border);
+	border-radius: 0;
 	color: var(--shyft-text-soft);
 	cursor: pointer;
 	font-family: var(--shyft-font-body);
@@ -1118,22 +1107,21 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 	justify-content: center;
 	background: var(--shyft-primary);
 	border: 1px solid var(--shyft-primary);
-	border-radius: var(--shyft-radius-pill);
+	border-radius: 0;
 	color: var(--shyft-on-accent);
 	cursor: pointer;
 	font-family: var(--shyft-font-body);
 	font-size: 15px;
 	font-weight: 500;
 	padding: 14px 32px;
-	box-shadow: var(--shyft-shadow-sm);
-	transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+	box-shadow: none;
+	transition: background 0.2s ease, border-color 0.2s ease;
 }
 
 .shyft-button:hover,
 .shyft-button:focus {
 	background: var(--shyft-primary-hover);
-	transform: translateY(-1px);
-	box-shadow: var(--shyft-shadow);
+	box-shadow: none;
 }
 
 .shyft-button:disabled {
