@@ -9,7 +9,7 @@
 
 	function postComplete() {
 		if (!config.ajaxUrl || !config.action || !config.nonce) {
-			return Promise.resolve();
+			return Promise.resolve(true);
 		}
 
 		var body = new URLSearchParams();
@@ -21,9 +21,19 @@
 			credentials: 'same-origin',
 			headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
 			body: body.toString()
-		}).catch(function () {
-			// Still redirect / continue if marking failed.
-		});
+		})
+			.then(function (response) {
+				if (!response.ok) {
+					return false;
+				}
+
+				return response.json().then(function (payload) {
+					return !!(payload && payload.success);
+				});
+			})
+			.catch(function () {
+				return false;
+			});
 	}
 
 	function preloadUrl(url) {
@@ -46,14 +56,15 @@
 			});
 		});
 
-		return chain.then(postComplete);
+		return chain;
 	}
 
-	function finish() {
-		if (config.mode === 'redirect' && config.redirectUrl) {
-			window.location.replace(config.redirectUrl);
+	function finish(markedComplete) {
+		if (config.mode !== 'redirect' || !config.redirectUrl || !markedComplete) {
 			return;
 		}
+
+		window.location.replace(config.redirectUrl);
 	}
 
 	var start = window.requestIdleCallback || function (cb) {
@@ -61,6 +72,8 @@
 	};
 
 	start(function () {
-		runWarmup().then(finish);
+		runWarmup()
+			.then(postComplete)
+			.then(finish);
 	});
 })();

@@ -17,14 +17,24 @@ if ( ! defined( 'ABSPATH' ) ) {
 final class Shyft_Dashboard_Request {
 
 	/**
-	 * Whether the current HTTP request targets the customer dashboard route.
+	 * Whether the current HTTP request targets any plugin frontend route.
 	 */
 	public static function matches_uri(): bool {
-		$path = self::get_path_segment();
+		return self::matches_warmup_uri() || self::matches_dashboard_uri();
+	}
 
-		if ( 'dashboard-warmup' === $path ) {
-			return true;
-		}
+	/**
+	 * Whether the request targets the warmup gate (/dashboard-warmup/).
+	 */
+	public static function matches_warmup_uri(): bool {
+		return 'dashboard-warmup' === self::get_path_segment();
+	}
+
+	/**
+	 * Whether the request targets the customer dashboard (/dashboard/…).
+	 */
+	public static function matches_dashboard_uri(): bool {
+		$path = self::get_path_segment();
 
 		if ( 'dashboard' === $path ) {
 			return true;

@@ -343,7 +343,7 @@ final class Shyft_Dashboard_Warmup {
 	 * Whether the request URI targets the warmup gate.
 	 */
 	public static function matches_warmup_uri(): bool {
-		return 'dashboard-warmup' === Shyft_Dashboard_Request::get_path_segment();
+		return Shyft_Dashboard_Request::matches_warmup_uri();
 	}
 
 	/**

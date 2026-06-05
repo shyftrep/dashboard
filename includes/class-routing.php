@@ -229,7 +229,7 @@ final class Shyft_Dashboard_Routing {
 		if (
 			! Shyft_Dashboard_Request::is_preload_request()
 			&& Shyft_Dashboard_Warmup::is_eligible_for_warmup()
-			&& Shyft_Dashboard_Warmup::needs_warmup()
+			&& Shyft_Dashboard_Warmup::requires_warmup_gate()
 		) {
 			wp_safe_redirect( Shyft_Dashboard_Warmup::get_warmup_url() );
 			exit;
@@ -293,7 +293,7 @@ final class Shyft_Dashboard_Routing {
 	 * Checks whether the request URI targets the dashboard route.
 	 */
 	private static function matches_dashboard_uri(): bool {
-		return Shyft_Dashboard_Request::matches_uri();
+		return Shyft_Dashboard_Request::matches_dashboard_uri();
 	}
 
 	/**
@@ -313,6 +313,10 @@ final class Shyft_Dashboard_Routing {
 	 * Determines whether the current request targets the dashboard route.
 	 */
 	public static function is_dashboard_request(): bool {
+		if ( Shyft_Dashboard_Request::matches_warmup_uri() ) {
+			return false;
+		}
+
 		$query = get_query_var( self::QUERY_VAR );
 
 		if ( '1' === (string) $query || 1 === $query ) {
