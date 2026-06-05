@@ -3,13 +3,16 @@
  * Dashboard warmup gate (preload + redirect).
  *
  * @package ShyftDashboard
+ *
+ * @var string $logo_url
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-$config = Shyft_Dashboard_Warmup::get_script_config( 'redirect' );
+$config   = Shyft_Dashboard_Warmup::get_script_config( 'redirect' );
+$logo_url = $logo_url ?? Shyft_Dashboard_Settings::get_logo_url();
 ?>
 <!DOCTYPE html>
 <html <?php language_attributes(); ?>>
@@ -19,6 +22,7 @@ $config = Shyft_Dashboard_Warmup::get_script_config( 'redirect' );
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="robots" content="noindex, nofollow">
 	<title><?php esc_html_e( 'Dashboard wird vorbereitet …', 'shyft-dashboard' ); ?></title>
+	<link rel="stylesheet" href="<?php echo esc_url( SHYFT_DASHBOARD_FONTS_URL ); ?>" />
 	<style>
 		body {
 			margin: 0;
@@ -27,19 +31,26 @@ $config = Shyft_Dashboard_Warmup::get_script_config( 'redirect' );
 			align-items: center;
 			justify-content: center;
 			font-family: "Bricolage Grotesque", system-ui, sans-serif;
-			background: #172A39;
-			color: #E0DBD7;
+			background: #E0DBD7;
+			color: #172A39;
 		}
 		.shyft-warmup {
 			text-align: center;
 			padding: 2rem;
 			max-width: 22rem;
 		}
+		.shyft-warmup__logo {
+			display: block;
+			width: auto;
+			height: 28px;
+			margin: 0 auto 1.5rem;
+			object-fit: contain;
+		}
 		.shyft-warmup__spinner {
-			width: 2.5rem;
-			height: 2.5rem;
+			width: 2.25rem;
+			height: 2.25rem;
 			margin: 0 auto 1.25rem;
-			border: 3px solid rgba(224, 219, 215, 0.2);
+			border: 2px solid rgba(23, 42, 57, 0.12);
 			border-top-color: #FC573B;
 			border-radius: 50%;
 			animation: shyft-warmup-spin 0.8s linear infinite;
@@ -49,13 +60,20 @@ $config = Shyft_Dashboard_Warmup::get_script_config( 'redirect' );
 		}
 		.shyft-warmup__hint {
 			font-size: 0.875rem;
-			opacity: 0.75;
+			color: rgba(23, 42, 57, 0.58);
 			margin-top: 0.75rem;
 		}
 	</style>
 </head>
 <body>
 	<div class="shyft-warmup" role="status" aria-live="polite">
+		<img
+			class="shyft-warmup__logo"
+			src="<?php echo esc_url( $logo_url ); ?>"
+			alt="<?php esc_attr_e( 'SHYFT', 'shyft-dashboard' ); ?>"
+			width="96"
+			height="28"
+		>
 		<div class="shyft-warmup__spinner" aria-hidden="true"></div>
 		<p><?php esc_html_e( 'Dashboard wird vorbereitet …', 'shyft-dashboard' ); ?></p>
 		<p class="shyft-warmup__hint"><?php esc_html_e( 'Einmal täglich – danach öffnet sich alles sofort.', 'shyft-dashboard' ); ?></p>

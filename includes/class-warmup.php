@@ -208,6 +208,7 @@ final class Shyft_Dashboard_Warmup {
 	 * Renders the warmup gate (loading screen + preload script).
 	 */
 	public static function render_warmup_page(): void {
+		$logo_url = Shyft_Dashboard_Settings::get_logo_url();
 		include SHYFT_DASHBOARD_PATH . 'templates/warmup.php';
 	}
 

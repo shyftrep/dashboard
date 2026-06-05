@@ -19,7 +19,7 @@ final class Shyft_Dashboard_Settings {
 	public const OPTION_GROUP = 'shyft_dashboard_settings';
 	public const PAGE_SLUG    = 'shyft-dashboard-settings';
 
-	public const DEFAULT_LOGO  = 'https://shyft.rocks/wp-content/uploads/2026/02/shyft-1-e1769653084451.png';
+	public const DEFAULT_LOGO  = '';
 	public const MATOMO_SITE_ID = '1';
 
 	/**
@@ -445,14 +445,13 @@ final class Shyft_Dashboard_Settings {
 	public static function render_logo_field( array $args ): void {
 		$option = $args['option'];
 		$value  = get_option( $option, self::DEFAULT_LOGO );
+		$preview = ! empty( $value ) ? (string) $value : self::get_bundled_logo_url();
 		?>
 		<div class="shyft-logo-field">
 			<input type="url" id="<?php echo esc_attr( $option ); ?>" name="<?php echo esc_attr( $option ); ?>" value="<?php echo esc_url( (string) $value ); ?>" class="regular-text shyft-logo-url" />
 			<button type="button" class="button shyft-upload-logo"><?php esc_html_e( 'Logo auswählen', 'shyft-dashboard' ); ?></button>
 			<div class="shyft-logo-preview" style="margin-top:12px;">
-				<?php if ( ! empty( $value ) ) : ?>
-					<img src="<?php echo esc_url( (string) $value ); ?>" alt="<?php esc_attr_e( 'Dashboard-Logo', 'shyft-dashboard' ); ?>" style="max-height:60px;width:auto;" />
-				<?php endif; ?>
+				<img src="<?php echo esc_url( $preview ); ?>" alt="<?php esc_attr_e( 'Dashboard-Logo', 'shyft-dashboard' ); ?>" style="max-height:60px;width:auto;" />
 			</div>
 		</div>
 		<?php
@@ -590,9 +589,21 @@ final class Shyft_Dashboard_Settings {
 		return self::MATOMO_SITE_ID;
 	}
 
+	public static function get_bundled_logo_url(): string {
+		return SHYFT_DASHBOARD_URL . 'assets/images/shyft-logo-dark.png';
+	}
+
+	/**
+	 * Returns the configured dashboard logo URL (dark logo on light backgrounds by default).
+	 */
 	public static function get_logo_url(): string {
-		$logo = get_option( 'shyft_dashboard_logo_url', self::DEFAULT_LOGO );
-		return esc_url( (string) $logo ) ?: self::DEFAULT_LOGO;
+		$logo = (string) get_option( 'shyft_dashboard_logo_url', self::DEFAULT_LOGO );
+
+		if ( '' === trim( $logo ) ) {
+			return self::get_bundled_logo_url();
+		}
+
+		return esc_url( $logo ) ?: self::get_bundled_logo_url();
 	}
 
 	/**
