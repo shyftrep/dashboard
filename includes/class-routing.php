@@ -403,7 +403,7 @@ final class Shyft_Dashboard_Routing {
 			return;
 		}
 
-		$fonts_url = 'https://fonts.googleapis.com/css2?family=Anton&family=Roboto:wght@300;400;500;600;700&display=swap';
+		$fonts_url = SHYFT_DASHBOARD_FONTS_URL;
 		$css_url   = SHYFT_DASHBOARD_URL . 'assets/css/dashboard.css';
 
 		printf(
@@ -534,7 +534,7 @@ final class Shyft_Dashboard_Routing {
 
 		wp_enqueue_style(
 			'shyft-dashboard-fonts',
-			'https://fonts.googleapis.com/css2?family=Anton&family=Roboto:wght@300;400;500;600;700&display=swap',
+			SHYFT_DASHBOARD_FONTS_URL,
 			array(),
 			null
 		);
