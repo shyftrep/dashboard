@@ -124,9 +124,12 @@ $tasks_tracker         = $tasks_tracker ?? array(
 		<?php include SHYFT_DASHBOARD_PATH . 'templates/partials/tasks-notice.php'; ?>
 
 		<?php if ( ! empty( $latest_activities ) ) : ?>
-			<section class="shyft-dashboard__activity" aria-label="<?php esc_attr_e( 'Letzte Wartung', 'shyft-dashboard' ); ?>">
-				<h2 class="shyft-section-label shyft-dashboard__activity-heading"><?php esc_html_e( 'Zuletzt erledigt', 'shyft-dashboard' ); ?></h2>
-				<div class="shyft-tile-grid shyft-dashboard__activity-grid">
+			<section class="shyft-dashboard__section shyft-dashboard__activity" aria-label="<?php esc_attr_e( 'Letzte Wartung', 'shyft-dashboard' ); ?>">
+				<header class="shyft-section-header">
+					<p class="shyft-section-label"><?php esc_html_e( 'SHYFT Care', 'shyft-dashboard' ); ?></p>
+					<h2 class="shyft-section-title"><?php esc_html_e( 'Zuletzt erledigt', 'shyft-dashboard' ); ?></h2>
+				</header>
+				<div class="shyft-activity-grid">
 					<?php foreach ( $latest_activities as $activity ) : ?>
 						<article class="shyft-activity-card shyft-activity-card--<?php echo esc_attr( $activity['type'] ); ?>">
 							<div class="shyft-activity-card__icon" aria-hidden="true"></div>
@@ -145,7 +148,20 @@ $tasks_tracker         = $tasks_tracker ?? array(
 			</section>
 		<?php endif; ?>
 
-		<section class="shyft-dashboard__metrics shyft-tile-grid" aria-label="<?php esc_attr_e( 'Kennzahlen', 'shyft-dashboard' ); ?>">
+		<section class="shyft-dashboard__section shyft-dashboard__section--metrics" aria-label="<?php esc_attr_e( 'Kennzahlen', 'shyft-dashboard' ); ?>">
+			<header class="shyft-section-header">
+				<p class="shyft-section-label"><?php esc_html_e( 'Überblick', 'shyft-dashboard' ); ?></p>
+				<h2 class="shyft-section-title">
+					<?php
+					printf(
+						/* translators: %s: reporting period label, e.g. "90 Tage" */
+						esc_html__( 'Kennzahlen · %s', 'shyft-dashboard' ),
+						esc_html( $period_label )
+					);
+					?>
+				</h2>
+			</header>
+			<div class="shyft-metrics-grid">
 			<article class="shyft-card shyft-card--metric">
 				<p class="shyft-card__label">
 					<?php
@@ -262,11 +278,17 @@ $tasks_tracker         = $tasks_tracker ?? array(
 					<?php echo esc_html( (string) (int) $status['updates'] ); ?>
 				</p>
 			</article>
+			</div>
 		</section>
 
-		<section class="shyft-dashboard__grid shyft-tile-grid">
+		<section class="shyft-dashboard__section" aria-label="<?php esc_attr_e( 'Details', 'shyft-dashboard' ); ?>">
+			<header class="shyft-section-header">
+				<p class="shyft-section-label"><?php esc_html_e( 'Details', 'shyft-dashboard' ); ?></p>
+				<h2 class="shyft-section-title"><?php esc_html_e( 'Website & Anfragen', 'shyft-dashboard' ); ?></h2>
+			</header>
+			<div class="shyft-card-grid shyft-dashboard__grid">
 			<article class="shyft-card shyft-card--panel">
-				<h2 class="shyft-section-label shyft-card__heading"><?php esc_html_e( 'Website-Status', 'shyft-dashboard' ); ?></h2>
+				<h3 class="shyft-card__heading"><?php esc_html_e( 'Website-Status', 'shyft-dashboard' ); ?></h3>
 				<ul class="shyft-status-list">
 					<li class="shyft-status-list__item">
 						<span class="shyft-status-list__label"><?php esc_html_e( 'SSL', 'shyft-dashboard' ); ?></span>
@@ -316,7 +338,7 @@ $tasks_tracker         = $tasks_tracker ?? array(
 			</article>
 
 			<article class="shyft-card shyft-card--panel">
-				<h2 class="shyft-section-label shyft-card__heading"><?php esc_html_e( 'Letzte Anfragen', 'shyft-dashboard' ); ?></h2>
+				<h3 class="shyft-card__heading"><?php esc_html_e( 'Letzte Anfragen', 'shyft-dashboard' ); ?></h3>
 				<?php if ( empty( $recent_leads ) ) : ?>
 					<p class="shyft-empty"><?php esc_html_e( 'Noch keine Anfragen vorhanden.', 'shyft-dashboard' ); ?></p>
 				<?php else : ?>
@@ -340,7 +362,7 @@ $tasks_tracker         = $tasks_tracker ?? array(
 			</article>
 
 			<article class="shyft-card shyft-card--panel">
-				<h2 class="shyft-section-label shyft-card__heading"><?php esc_html_e( 'Zuletzt aktualisierte Plugins', 'shyft-dashboard' ); ?></h2>
+				<h3 class="shyft-card__heading"><?php esc_html_e( 'Zuletzt aktualisierte Plugins', 'shyft-dashboard' ); ?></h3>
 				<?php if ( empty( $recent_plugin_updates ) ) : ?>
 					<p class="shyft-empty"><?php esc_html_e( 'Noch keine Plugin-Updates protokolliert.', 'shyft-dashboard' ); ?></p>
 				<?php else : ?>
@@ -361,11 +383,12 @@ $tasks_tracker         = $tasks_tracker ?? array(
 					</ul>
 				<?php endif; ?>
 			</article>
+			</div>
 		</section>
 
-		<section class="shyft-dashboard__request">
-			<article class="shyft-card shyft-card--panel shyft-card--tile">
-				<h2 class="shyft-section-label shyft-card__heading"><?php esc_html_e( 'Änderungswunsch', 'shyft-dashboard' ); ?></h2>
+		<section class="shyft-dashboard__section shyft-dashboard__request" aria-label="<?php esc_attr_e( 'Änderungswunsch', 'shyft-dashboard' ); ?>">
+			<article class="shyft-card shyft-card--panel">
+				<h2 class="shyft-card__heading"><?php esc_html_e( 'Änderungswunsch', 'shyft-dashboard' ); ?></h2>
 				<p class="shyft-card__description"><?php esc_html_e( 'Teile uns mit, was wir für deine Website anpassen sollen.', 'shyft-dashboard' ); ?></p>
 
 				<form class="shyft-form" method="post" action="<?php echo esc_url( $form_action ); ?>" enctype="multipart/form-data">

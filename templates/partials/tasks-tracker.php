@@ -24,7 +24,7 @@ $done_tasks  = $tasks_tracker['done'] ?? array();
 $can_manage  = ! empty( $tasks_tracker['can_manage'] );
 $has_tasks   = ! empty( $open_tasks ) || ! empty( $done_tasks );
 ?>
-<section id="shyft-tasks" class="shyft-dashboard__tasks" aria-label="<?php esc_attr_e( 'Aufgaben-Tracker', 'shyft-dashboard' ); ?>">
+<section id="shyft-tasks" class="shyft-dashboard__section shyft-dashboard__tasks" aria-label="<?php esc_attr_e( 'Aufgaben-Tracker', 'shyft-dashboard' ); ?>">
 	<article class="shyft-card shyft-card--panel">
 		<h2 class="shyft-card__heading"><?php esc_html_e( 'Aufgaben-Tracker', 'shyft-dashboard' ); ?></h2>
 		<p class="shyft-card__description">

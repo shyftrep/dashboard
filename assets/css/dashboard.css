@@ -416,7 +416,9 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 }
 
 .shyft-dashboard__intro {
-	margin-bottom: 36px;
+	margin-bottom: 40px;
+	padding-bottom: 32px;
+	border-bottom: 1px solid var(--shyft-border);
 }
 
 .shyft-dashboard__intro-row {
@@ -438,22 +440,43 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 }
 
 .shyft-section-label {
-	margin: 0 0 18px;
+	margin: 0;
 	color: var(--shyft-accent);
 	font-family: var(--shyft-font-body);
-	font-size: 12px;
+	font-size: 11px;
 	font-weight: 600;
-	letter-spacing: 0.1em;
+	letter-spacing: 0.12em;
 	text-transform: uppercase;
 }
 
 .shyft-section-label::before {
 	content: "";
 	display: block;
-	width: 28px;
+	width: 24px;
 	height: 2px;
 	background: var(--shyft-accent);
-	margin-bottom: 10px;
+	margin-bottom: 8px;
+}
+
+.shyft-section-header {
+	margin-bottom: 20px;
+}
+
+.shyft-section-title {
+	margin: 6px 0 0;
+	font-family: var(--shyft-font-display);
+	font-size: clamp(24px, 3.5vw, 32px);
+	font-weight: 400;
+	line-height: 1.15;
+	color: var(--shyft-text);
+}
+
+.shyft-dashboard__section {
+	margin-bottom: 48px;
+}
+
+.shyft-dashboard__section:last-child {
+	margin-bottom: 0;
 }
 
 .shyft-dashboard__subtitle {
@@ -526,11 +549,11 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 
 .shyft-tasks__subheading {
 	margin: 20px 0 12px;
-	color: var(--shyft-accent);
+	color: var(--shyft-text-muted);
 	font-family: var(--shyft-font-body);
 	font-size: 12px;
 	font-weight: 600;
-	letter-spacing: 0.08em;
+	letter-spacing: 0.06em;
 	text-transform: uppercase;
 }
 
@@ -554,15 +577,10 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 .shyft-task {
 	display: flex;
 	gap: 14px;
-	padding: 20px 22px;
-	border: 0;
-	border-bottom: 1px solid var(--shyft-grid-line);
-	border-radius: 0;
-	background: transparent;
-}
-
-.shyft-tasks-list {
-	border-top: 1px solid var(--shyft-grid-line);
+	padding: 16px 18px;
+	border: 1px solid var(--shyft-border);
+	border-radius: var(--shyft-radius);
+	background: var(--shyft-card-alt);
 }
 
 .shyft-task--done {
@@ -700,106 +718,112 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 }
 
 .shyft-dashboard__activity {
-	margin-bottom: 36px;
+	margin-bottom: 0;
 }
 
-.shyft-dashboard__activity-heading {
-	margin-bottom: 16px;
-}
-
-.shyft-dashboard__activity-grid {
-	grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.shyft-tile-grid {
+.shyft-activity-grid {
 	display: grid;
-	grid-template-columns: repeat(3, minmax(0, 1fr));
-	gap: 1px;
-	background: var(--shyft-grid-line);
-	margin-bottom: 36px;
-}
-
-.shyft-tile-grid > .shyft-card,
-.shyft-tile-grid > .shyft-activity-card {
-	background: var(--shyft-bg);
-	border: 0;
-	border-radius: 0;
-	box-shadow: none;
-	padding: 28px 24px;
-	margin: 0;
-	transition: background 0.25s ease;
-}
-
-.shyft-tile-grid > .shyft-card:hover,
-.shyft-tile-grid > .shyft-activity-card:hover {
-	box-shadow: none;
-	transform: none;
-}
-
-.shyft-tile-grid .shyft-card--metric::before {
-	display: none;
-}
-
-.shyft-card--tile {
-	background: transparent;
-	border: 1px solid var(--shyft-grid-line);
-	border-radius: 0;
-	box-shadow: none;
-	padding: 28px 24px;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 16px;
 }
 
 .shyft-activity-card {
 	display: flex;
-	flex-direction: column;
-	align-items: stretch;
-	gap: 10px;
-	position: relative;
-	min-height: 100%;
+	align-items: flex-start;
+	gap: 14px;
+	background: var(--shyft-surface);
+	border: 1px solid var(--shyft-border);
+	border-left: 3px solid var(--shyft-activity-line-default, var(--shyft-accent));
+	border-radius: var(--shyft-radius-lg);
+	padding: 20px 22px;
+	box-shadow: var(--shyft-shadow-sm);
+}
+
+.shyft-activity-card--update {
+	border-left-color: var(--shyft-activity-line-update, var(--shyft-primary));
+}
+
+.shyft-activity-card--security {
+	border-left-color: var(--shyft-activity-line-security, var(--shyft-accent));
+}
+
+.shyft-activity-card--backup {
+	border-left-color: var(--shyft-activity-line-backup, var(--shyft-text-muted));
+}
+
+.shyft-activity-card--performance {
+	border-left-color: var(--shyft-activity-line-performance, var(--shyft-accent));
 }
 
 .shyft-activity-card__icon {
 	display: none;
 }
 
+.shyft-activity-card__content {
+	flex: 1;
+	min-width: 0;
+}
+
 .shyft-activity-card__badge {
+	flex-shrink: 0;
 	align-self: flex-start;
-	background: transparent;
+	background: var(--shyft-accent-soft);
 	border: 0;
-	border-radius: 0;
+	border-radius: var(--shyft-radius-pill);
 	color: var(--shyft-accent);
-	font-size: 11px;
+	font-size: 10px;
 	font-weight: 600;
-	letter-spacing: 0.08em;
-	padding: 0;
-	order: -2;
+	letter-spacing: 0.06em;
+	padding: 4px 10px;
+	text-transform: uppercase;
 }
 
 .shyft-activity-card__message {
-	margin: 0;
+	margin: 0 0 6px;
 	color: var(--shyft-text);
-	font-size: 17px;
+	font-size: 15px;
 	font-weight: 600;
-	line-height: 1.35;
+	line-height: 1.4;
 }
 
 .shyft-activity-card__meta {
 	margin: 0;
-	color: var(--shyft-text-soft);
-	font-size: 14px;
+	color: var(--shyft-text-muted);
+	font-size: 13px;
 	font-weight: 400;
-	line-height: 1.55;
 }
 
-.shyft-dashboard__metrics {
-	margin-bottom: 0;
+.shyft-metrics-grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 16px;
 }
 
+.shyft-metrics-grid .shyft-card--metric {
+	background: var(--shyft-surface);
+	border: 1px solid var(--shyft-border);
+	border-radius: var(--shyft-radius-lg);
+	box-shadow: var(--shyft-shadow-sm);
+	padding: 22px 24px;
+}
+
+.shyft-metrics-grid .shyft-card--metric::before {
+	display: none;
+}
+
+.shyft-card-grid,
 .shyft-dashboard__grid {
-	margin-bottom: 0;
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 20px;
 }
 
 .shyft-dashboard__request {
-	margin-bottom: 36px;
+	margin-bottom: 0;
+}
+
+.shyft-dashboard__tasks {
+	margin-top: 0;
 }
 
 .shyft-card {
@@ -813,10 +837,6 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 
 .shyft-card--panel:hover {
 	box-shadow: var(--shyft-shadow);
-}
-
-.shyft-tile-grid .shyft-card--panel:hover {
-	box-shadow: none;
 }
 
 .shyft-card--metric {
@@ -872,11 +892,12 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 
 .shyft-card__label {
 	margin: 0 0 10px;
-	color: var(--shyft-accent);
-	font-size: 12px;
+	color: var(--shyft-text-muted);
+	font-size: 11px;
 	font-weight: 600;
 	text-transform: uppercase;
-	letter-spacing: 0.08em;
+	letter-spacing: 0.06em;
+	line-height: 1.35;
 }
 
 .shyft-card__value {
@@ -918,14 +939,6 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 	font-weight: 600;
 	color: var(--shyft-text);
 	letter-spacing: -0.01em;
-}
-
-.shyft-card__heading.shyft-section-label {
-	font-size: 12px;
-	font-weight: 600;
-	color: var(--shyft-accent);
-	letter-spacing: 0.1em;
-	text-transform: uppercase;
 }
 
 .shyft-card__description {
@@ -1150,8 +1163,9 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 }
 
 @media (max-width: 960px) {
-	.shyft-tile-grid,
-	.shyft-dashboard__activity-grid {
+	.shyft-metrics-grid,
+	.shyft-card-grid,
+	.shyft-dashboard__grid {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 }
@@ -1198,13 +1212,14 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 		margin-bottom: 20px;
 	}
 
-	.shyft-dashboard__activity-heading {
-		margin-bottom: 10px;
+	.shyft-activity-grid {
+		grid-template-columns: 1fr;
 	}
 
-	.shyft-tile-grid > .shyft-card,
-	.shyft-tile-grid > .shyft-activity-card {
-		padding: 20px 18px;
+	.shyft-metrics-grid,
+	.shyft-card-grid,
+	.shyft-dashboard__grid {
+		grid-template-columns: 1fr;
 	}
 }
 
@@ -1216,10 +1231,5 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 
 	.shyft-dashboard__intro-row {
 		flex-wrap: wrap;
-	}
-
-	.shyft-tile-grid,
-	.shyft-dashboard__activity-grid {
-		grid-template-columns: 1fr;
 	}
 }
