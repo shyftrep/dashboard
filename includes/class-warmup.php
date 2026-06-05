@@ -108,7 +108,14 @@ final class Shyft_Dashboard_Warmup {
 		$urls = array();
 
 		foreach ( Shyft_Dashboard_Period::ALLOWED_DAYS as $days ) {
-			$urls[] = Shyft_Dashboard_Period::get_dashboard_url( $days );
+			$urls[] = add_query_arg(
+				array(
+					'shyft_preload' => '1',
+					'shyft_v'       => SHYFT_DASHBOARD_VERSION,
+					'shyft_t'       => (string) time(),
+				),
+				Shyft_Dashboard_Period::get_dashboard_url( $days )
+			);
 		}
 
 		return array_values( array_unique( $urls ) );
@@ -132,7 +139,44 @@ final class Shyft_Dashboard_Warmup {
 
 		$last = get_user_meta( $user->ID, self::META_KEY, true );
 
-		return ! is_string( $last ) || $last !== self::get_today_key();
+		return ! is_string( $last ) || $last !== self::get_completion_token();
+	}
+
+	/**
+	 * Whether the visible warmup gate is required (plugin update), not just a silent preload.
+	 *
+	 * @param WP_User|null $user User object.
+	 */
+	public static function requires_warmup_gate( ?WP_User $user = null ): bool {
+		$user = $user ?? wp_get_current_user();
+
+		if ( ! $user instanceof WP_User || ! $user->exists() ) {
+			return false;
+		}
+
+		if ( ! self::needs_warmup( $user ) ) {
+			return false;
+		}
+
+		$last = get_user_meta( $user->ID, self::META_KEY, true );
+
+		if ( ! is_string( $last ) || ! str_contains( $last, ':' ) ) {
+			return true;
+		}
+
+		$parts          = explode( ':', $last, 2 );
+		$stored_version = $parts[0] ?? '';
+
+		return $stored_version !== SHYFT_DASHBOARD_VERSION;
+	}
+
+	/**
+	 * Silent background preload (same plugin version, new day only).
+	 *
+	 * @param WP_User|null $user User object.
+	 */
+	public static function allows_silent_warmup( ?WP_User $user = null ): bool {
+		return self::needs_warmup( $user ) && ! self::requires_warmup_gate( $user );
 	}
 
 	/**
@@ -145,7 +189,7 @@ final class Shyft_Dashboard_Warmup {
 			return;
 		}
 
-		update_user_meta( $user->ID, self::META_KEY, self::get_today_key() );
+		update_user_meta( $user->ID, self::META_KEY, self::get_completion_token() );
 	}
 
 	/**
@@ -185,6 +229,7 @@ final class Shyft_Dashboard_Warmup {
 		}
 
 		status_header( 200 );
+		Shyft_Dashboard_Request::send_html_headers();
 
 		if ( $GLOBALS['wp_query'] instanceof WP_Query ) {
 			$GLOBALS['wp_query']->is_404 = false;
@@ -224,7 +269,7 @@ final class Shyft_Dashboard_Warmup {
 			return;
 		}
 
-		if ( ! self::is_eligible_for_warmup() || ! self::needs_warmup() ) {
+		if ( ! self::is_eligible_for_warmup() || ! self::allows_silent_warmup() ) {
 			return;
 		}
 
@@ -239,7 +284,7 @@ final class Shyft_Dashboard_Warmup {
 			return;
 		}
 
-		if ( ! self::is_eligible_for_warmup() || ! self::needs_warmup() ) {
+		if ( ! self::is_eligible_for_warmup() || ! self::allows_silent_warmup() ) {
 			return;
 		}
 
@@ -302,9 +347,16 @@ final class Shyft_Dashboard_Warmup {
 	}
 
 	/**
-	 * Site-local date key for the once-per-day check.
+	 * Stored when warmup finished: plugin version + site-local date.
 	 */
-	private static function get_today_key(): string {
-		return wp_date( 'Y-m-d' );
+	private static function get_completion_token(): string {
+		return SHYFT_DASHBOARD_VERSION . ':' . wp_date( 'Y-m-d' );
+	}
+
+	/**
+	 * Clears warmup completion for all users (after deploy).
+	 */
+	public static function invalidate_all_users(): void {
+		delete_metadata( 'user', 0, self::META_KEY, '', true );
 	}
 }

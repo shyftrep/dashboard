@@ -204,17 +204,7 @@ final class Shyft_Dashboard_Routing {
 	 * Sends Content-Type and no-cache headers for dashboard responses.
 	 */
 	private static function send_dashboard_response_headers(): void {
-		if ( headers_sent() ) {
-			return;
-		}
-
-		if ( function_exists( 'header_remove' ) ) {
-			header_remove( 'Content-Type' );
-		}
-
-		header( 'Content-Type: text/html; charset=' . get_bloginfo( 'charset' ), true );
-		header( 'X-LiteSpeed-Cache-Control: no-cache', false );
-		nocache_headers();
+		Shyft_Dashboard_Request::send_html_headers();
 	}
 
 	/**
@@ -234,6 +224,15 @@ final class Shyft_Dashboard_Routing {
 
 		if ( ! current_user_can( 'read' ) ) {
 			wp_die( esc_html__( 'Du hast keine Berechtigung, dieses Dashboard aufzurufen.', 'shyft-dashboard' ) );
+		}
+
+		if (
+			! Shyft_Dashboard_Request::is_preload_request()
+			&& Shyft_Dashboard_Warmup::is_eligible_for_warmup()
+			&& Shyft_Dashboard_Warmup::needs_warmup()
+		) {
+			wp_safe_redirect( Shyft_Dashboard_Warmup::get_warmup_url() );
+			exit;
 		}
 
 		self::prepare_dashboard_response();

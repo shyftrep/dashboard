@@ -68,4 +68,40 @@ final class Shyft_Dashboard_Request {
 
 		return trim( $path, '/' );
 	}
+
+	/**
+	 * Whether this request preloads dashboard HTML during the warmup gate (must not redirect).
+	 */
+	public static function is_preload_request(): bool {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Warmup preload marker.
+		if ( ! isset( $_GET['shyft_preload'] ) ) {
+			return false;
+		}
+
+		return '1' === wp_unslash( (string) $_GET['shyft_preload'] );
+	}
+
+	/**
+	 * Sends HTML Content-Type and no-cache headers for dashboard routes.
+	 */
+	public static function send_html_headers(): void {
+		if ( headers_sent() ) {
+			return;
+		}
+
+		if ( function_exists( 'header_remove' ) ) {
+			header_remove( 'Content-Type' );
+		}
+
+		$charset = function_exists( 'get_bloginfo' ) ? get_bloginfo( 'charset' ) : 'UTF-8';
+
+		header( 'Content-Type: text/html; charset=' . $charset, true );
+		header( 'X-LiteSpeed-Cache-Control: no-cache', false );
+		header( 'Cache-Control: no-store, no-cache, must-revalidate, max-age=0', false );
+		header( 'Pragma: no-cache', false );
+
+		if ( function_exists( 'nocache_headers' ) ) {
+			nocache_headers();
+		}
+	}
 }

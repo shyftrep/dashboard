@@ -74,6 +74,7 @@ final class Shyft_Dashboard_Cache_Compat {
 		}
 
 		$uris[] = '/dashboard(?:/(?:7|30|90))?/?(?:\?.*)?$';
+		$uris[] = '/dashboard-warmup/?(?:\?.*)?$';
 
 		return $uris;
 	}
