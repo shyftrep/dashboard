@@ -32,6 +32,8 @@ final class Shyft_Dashboard_Settings {
 		add_action( 'admin_enqueue_scripts', array( self::class, 'enqueue_admin_assets' ) );
 		add_action( 'admin_bar_menu', array( self::class, 'add_admin_bar_link' ), 100 );
 		add_action( 'update_option_shyft_dashboard_matomo_token', array( self::class, 'clear_matomo_cache' ) );
+		add_action( 'update_option_shyft_dashboard_google_place_id', array( self::class, 'on_google_reviews_config_changed' ), 10, 2 );
+		add_action( 'update_option_shyft_dashboard_google_api_key', array( self::class, 'on_google_reviews_config_changed' ), 10, 2 );
 	}
 
 	/**
@@ -104,6 +106,26 @@ final class Shyft_Dashboard_Settings {
 			)
 		);
 
+		register_setting(
+			self::OPTION_GROUP,
+			'shyft_dashboard_google_place_id',
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => 'sanitize_text_field',
+				'default'           => '',
+			)
+		);
+
+		register_setting(
+			self::OPTION_GROUP,
+			'shyft_dashboard_google_api_key',
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => 'sanitize_text_field',
+				'default'           => '',
+			)
+		);
+
 		add_settings_section(
 			'shyft_dashboard_main',
 			__( 'Dashboard-Einstellungen', 'shyft-dashboard' ),
@@ -125,10 +147,20 @@ final class Shyft_Dashboard_Settings {
 			self::PAGE_SLUG
 		);
 
+		add_settings_section(
+			'shyft_dashboard_google_reviews',
+			__( 'Google Reviews', 'shyft-dashboard' ),
+			array( self::class, 'render_google_reviews_section_description' ),
+			self::PAGE_SLUG
+		);
+
 		self::add_field( 'shyft_dashboard_logo_url', __( 'Dashboard-Logo', 'shyft-dashboard' ), 'render_logo_field', 'shyft_dashboard_main' );
 		self::add_field( 'shyft_dashboard_matomo_token', __( 'Matomo API-Token (optional)', 'shyft-dashboard' ), 'render_matomo_token_field', 'shyft_dashboard_matomo' );
 		self::add_field( 'shyft_dashboard_github_token', __( 'GitHub-Zugriffstoken', 'shyft-dashboard' ), 'render_github_token_field', 'shyft_dashboard_updates' );
 		self::add_field( 'shyft_dashboard_update_check', __( 'Update-Prüfung', 'shyft-dashboard' ), 'render_update_check_field', 'shyft_dashboard_updates' );
+		self::add_field( 'shyft_dashboard_google_place_id', __( 'Google Place ID', 'shyft-dashboard' ), 'render_google_place_id_field', 'shyft_dashboard_google_reviews' );
+		self::add_field( 'shyft_dashboard_google_api_key', __( 'Google API-Schlüssel', 'shyft-dashboard' ), 'render_google_api_key_field', 'shyft_dashboard_google_reviews' );
+		self::add_field( 'shyft_dashboard_google_reviews_sync', __( 'Bewertungen synchronisieren', 'shyft-dashboard' ), 'render_google_reviews_sync_field', 'shyft_dashboard_google_reviews' );
 	}
 
 	/**
@@ -612,5 +644,216 @@ final class Shyft_Dashboard_Settings {
 	 */
 	public static function clear_matomo_cache(): void {
 		Shyft_Dashboard_Matomo::clear_cache();
+	}
+
+	/**
+	 * Triggers review sync when Google settings change.
+	 *
+	 * @param mixed $old_value Previous value.
+	 * @param mixed $value     New value.
+	 */
+	public static function on_google_reviews_config_changed( $old_value, $value ): void {
+		unset( $old_value, $value );
+		Shyft_Dashboard_Google_Reviews::on_config_changed( '', '' );
+	}
+
+	/**
+	 * Google Reviews section intro.
+	 */
+	public static function render_google_reviews_section_description(): void {
+		?>
+		<p><?php esc_html_e( 'Bewertungen werden per Cron alle 12 Stunden von Google geladen und lokal gespeichert. Die Website zeigt nur die gespeicherten Daten – keine API-Aufrufe beim Seitenaufruf.', 'shyft-dashboard' ); ?></p>
+		<p>
+			<?php esc_html_e( 'Shortcode:', 'shyft-dashboard' ); ?>
+			<code>[clicklabs_reviews]</code>
+			<?php esc_html_e( '· Elementor-Widget „Google Reviews (clicklabs)“', 'shyft-dashboard' ); ?>
+		</p>
+		<?php
+	}
+
+	/**
+	 * @param array<string, string> $args Field arguments.
+	 */
+	public static function render_google_place_id_field( array $args ): void {
+		$option = $args['option'];
+		$value  = get_option( $option, '' );
+		?>
+		<input
+			type="text"
+			id="<?php echo esc_attr( $option ); ?>"
+			name="<?php echo esc_attr( $option ); ?>"
+			value="<?php echo esc_attr( (string) $value ); ?>"
+			class="regular-text"
+			placeholder="ChIJxxxxxxxxxxxxxxxxxxxx"
+			autocomplete="off"
+		/>
+		<p class="description">
+			<?php esc_html_e( 'Place ID aus der Google Maps URL oder dem Place ID Finder.', 'shyft-dashboard' ); ?>
+		</p>
+		<?php
+	}
+
+	/**
+	 * @param array<string, string> $args Field arguments.
+	 */
+	public static function render_google_api_key_field( array $args ): void {
+		$option = $args['option'];
+		$value  = get_option( $option, '' );
+		$locked = self::is_google_api_key_locked();
+		?>
+		<input
+			type="password"
+			id="<?php echo esc_attr( $option ); ?>"
+			name="<?php echo esc_attr( $option ); ?>"
+			value="<?php echo $locked ? '' : esc_attr( (string) $value ); ?>"
+			class="regular-text"
+			autocomplete="new-password"
+			<?php disabled( $locked ); ?>
+		/>
+		<p class="description">
+			<?php
+			if ( $locked ) {
+				echo esc_html( self::get_google_api_key_source_label() );
+			} else {
+				esc_html_e( 'Places API muss in der Google Cloud Console aktiviert sein. Alternativ: includes/google-api-key.php oder SHYFT_DASHBOARD_GOOGLE_API_KEY in wp-config.php.', 'shyft-dashboard' );
+			}
+			?>
+		</p>
+		<?php
+	}
+
+	/**
+	 * @param array<string, string> $args Field arguments.
+	 */
+	public static function render_google_reviews_sync_field( array $args ): void {
+		unset( $args );
+
+		$data     = Shyft_Dashboard_Google_Reviews::get_stored_data();
+		$sync_url = wp_nonce_url(
+			admin_url( 'admin-post.php?action=shyft_sync_google_reviews' ),
+			'shyft_sync_google_reviews'
+		);
+		?>
+		<table class="widefat" style="max-width:640px;margin-bottom:12px;">
+			<tbody>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Status', 'shyft-dashboard' ); ?></th>
+					<td>
+						<?php
+						if ( ! empty( $data['available'] ) ) {
+							printf(
+								/* translators: 1: rating, 2: review count */
+								esc_html__( '%1$s ★ · %2$s Bewertungen', 'shyft-dashboard' ),
+								esc_html( number_format_i18n( (float) ( $data['rating'] ?? 0 ), 1 ) ),
+								esc_html( number_format_i18n( (int) ( $data['total'] ?? 0 ) ) )
+							);
+						} elseif ( Shyft_Dashboard_Google_Reviews::is_configured() ) {
+							esc_html_e( 'Noch keine Daten – bitte synchronisieren.', 'shyft-dashboard' );
+						} else {
+							esc_html_e( 'Place ID und API-Schlüssel erforderlich.', 'shyft-dashboard' );
+						}
+						?>
+					</td>
+				</tr>
+				<?php if ( ! empty( $data['fetched_at'] ) ) : ?>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Zuletzt aktualisiert', 'shyft-dashboard' ); ?></th>
+						<td><?php echo esc_html( (string) $data['fetched_at'] ); ?></td>
+					</tr>
+				<?php endif; ?>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Cron', 'shyft-dashboard' ); ?></th>
+					<td><?php esc_html_e( 'Automatisch alle 12 Stunden (twicedaily)', 'shyft-dashboard' ); ?></td>
+				</tr>
+			</tbody>
+		</table>
+		<p>
+			<a href="<?php echo esc_url( $sync_url ); ?>" class="button button-secondary">
+				<?php esc_html_e( 'Jetzt von Google synchronisieren', 'shyft-dashboard' ); ?>
+			</a>
+		</p>
+		<?php
+		if ( isset( $_GET['shyft_reviews_synced'] ) ) {
+			$ok      = '1' === (string) wp_unslash( (string) $_GET['shyft_reviews_synced'] );
+			$message = isset( $_GET['shyft_reviews_message'] ) ? rawurldecode( (string) wp_unslash( (string) $_GET['shyft_reviews_message'] ) ) : '';
+			?>
+			<div class="notice notice-<?php echo $ok ? 'success' : 'error'; ?> inline" style="margin-top:12px;">
+				<p>
+					<?php
+					if ( $ok ) {
+						esc_html_e( 'Google-Bewertungen wurden erfolgreich synchronisiert.', 'shyft-dashboard' );
+					} else {
+						esc_html_e( 'Synchronisation fehlgeschlagen.', 'shyft-dashboard' );
+						if ( '' !== $message ) {
+							echo ' ' . esc_html( $message );
+						}
+					}
+					?>
+				</p>
+			</div>
+			<?php
+		}
+	}
+
+	public static function get_google_place_id(): string {
+		return trim( (string) get_option( 'shyft_dashboard_google_place_id', '' ) );
+	}
+
+	public static function has_google_api_key_constant(): bool {
+		return defined( 'SHYFT_DASHBOARD_GOOGLE_API_KEY' )
+			&& is_string( SHYFT_DASHBOARD_GOOGLE_API_KEY )
+			&& '' !== SHYFT_DASHBOARD_GOOGLE_API_KEY;
+	}
+
+	public static function get_google_api_key_from_plugin_file(): string {
+		static $cached = null;
+
+		if ( null !== $cached ) {
+			return $cached;
+		}
+
+		$file = SHYFT_DASHBOARD_PATH . 'includes/google-api-key.php';
+
+		if ( ! is_readable( $file ) ) {
+			$cached = '';
+			return $cached;
+		}
+
+		$value  = include $file;
+		$cached = is_string( $value ) ? trim( $value ) : '';
+
+		return $cached;
+	}
+
+	public static function has_google_api_key_plugin_file(): bool {
+		return '' !== self::get_google_api_key_from_plugin_file();
+	}
+
+	public static function is_google_api_key_locked(): bool {
+		return self::has_google_api_key_constant() || self::has_google_api_key_plugin_file();
+	}
+
+	public static function get_google_api_key_source_label(): string {
+		if ( self::has_google_api_key_constant() ) {
+			return (string) __( 'gesetzt (wp-config.php)', 'shyft-dashboard' );
+		}
+
+		if ( self::has_google_api_key_plugin_file() ) {
+			return (string) __( 'gesetzt (includes/google-api-key.php)', 'shyft-dashboard' );
+		}
+
+		return (string) __( 'gesetzt (Einstellungen)', 'shyft-dashboard' );
+	}
+
+	public static function get_google_api_key(): string {
+		if ( self::has_google_api_key_constant() ) {
+			return SHYFT_DASHBOARD_GOOGLE_API_KEY;
+		}
+
+		if ( self::has_google_api_key_plugin_file() ) {
+			return self::get_google_api_key_from_plugin_file();
+		}
+
+		return trim( (string) get_option( 'shyft_dashboard_google_api_key', '' ) );
 	}
 }

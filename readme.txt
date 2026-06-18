@@ -3,7 +3,7 @@ Contributors: shyftrep
 Tags: dashboard, shyft, kunden
 Requires at least: 6.4
 Requires PHP: 8.1
-Stable tag: 2.1.9
+Stable tag: 2.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -14,6 +14,9 @@ Gebrandetes Kunden-Dashboard unter /dashboard mit Anfragen, Website-Status, Mato
 Das SHYFT Dashboard bietet Kundinnen und Kunden einen eigenen Bereich unter /dashboard – ohne Zugriff auf das WordPress-Backend.
 
 == Changelog ==
+
+= 2.2.0 =
+* Neu: Google Reviews – Place ID, Cron-Sync (12h), lokale Speicherung, Shortcode [clicklabs_reviews], Elementor-Widget, Schema.org.
 
 = 2.1.9 =
 * Fix: Redirect-Schleife behoben (/dashboard-warmup/ nicht mehr als Dashboard behandelt).

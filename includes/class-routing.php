@@ -481,6 +481,7 @@ final class Shyft_Dashboard_Routing {
 			'done'       => array(),
 			'can_manage' => false,
 		);
+		$google_reviews        = Shyft_Dashboard_Google_Reviews::get_stored_data();
 
 		try {
 			$leads           = new Shyft_Dashboard_Leads();

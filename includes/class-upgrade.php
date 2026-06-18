@@ -85,6 +85,11 @@ final class Shyft_Dashboard_Upgrade {
 		Shyft_Dashboard_Matomo::clear_cache();
 		Shyft_Dashboard_Updater::clear_update_cache();
 		Shyft_Dashboard_Warmup::invalidate_all_users();
+		Shyft_Dashboard_Google_Reviews::maybe_schedule_cron();
+
+		if ( Shyft_Dashboard_Google_Reviews::is_configured() ) {
+			Shyft_Dashboard_Google_Reviews::sync( true );
+		}
 
 		if ( function_exists( 'wp_clean_plugins_cache' ) ) {
 			wp_clean_plugins_cache( true );
