@@ -39,12 +39,17 @@ $logo_url = $logo_url ?? Shyft_Dashboard_Settings::get_logo_url();
 			padding: 2rem;
 			max-width: 22rem;
 		}
-		.shyft-warmup__logo {
+		.shyft-warmup__logo,
+		.shyft-dashboard__logo--warmup {
 			display: block;
 			width: auto;
 			height: 28px;
 			margin: 0 auto 1.5rem;
 			object-fit: contain;
+		}
+
+		.shyft-warmup .shyft-dashboard__logo--theme-dark {
+			display: none !important;
 		}
 		.shyft-warmup__spinner {
 			width: 2.25rem;
@@ -67,13 +72,10 @@ $logo_url = $logo_url ?? Shyft_Dashboard_Settings::get_logo_url();
 </head>
 <body>
 	<div class="shyft-warmup" role="status" aria-live="polite">
-		<img
-			class="shyft-warmup__logo"
-			src="<?php echo esc_url( $logo_url ); ?>"
-			alt="<?php esc_attr_e( 'SHYFT', 'shyft-dashboard' ); ?>"
-			width="96"
-			height="28"
-		>
+		<?php
+		$logo_modifier = 'warmup';
+		include SHYFT_DASHBOARD_PATH . 'templates/partials/brand-logo.php';
+		?>
 		<div class="shyft-warmup__spinner" aria-hidden="true"></div>
 		<p><?php esc_html_e( 'Dashboard wird vorbereitet …', 'shyft-dashboard' ); ?></p>
 		<p class="shyft-warmup__hint"><?php esc_html_e( 'Einmal täglich – danach öffnet sich alles sofort.', 'shyft-dashboard' ); ?></p>

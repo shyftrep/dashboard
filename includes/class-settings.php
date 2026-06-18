@@ -622,8 +622,17 @@ final class Shyft_Dashboard_Settings {
 		return self::MATOMO_SITE_ID;
 	}
 
-	public static function get_bundled_logo_url(): string {
-		return SHYFT_DASHBOARD_URL . 'assets/images/shyft-logo-dark.png';
+	public static function get_bundled_logo_url( string $variant = 'dark' ): string {
+		$file = 'light' === $variant ? 'shyft-logo-light.png' : 'shyft-logo-dark.png';
+
+		return SHYFT_DASHBOARD_URL . 'assets/images/' . $file;
+	}
+
+	/**
+	 * Whether the default bundled shyft logos are used (no custom URL in settings).
+	 */
+	public static function uses_bundled_logo(): bool {
+		return '' === trim( (string) get_option( 'shyft_dashboard_logo_url', self::DEFAULT_LOGO ) );
 	}
 
 	/**

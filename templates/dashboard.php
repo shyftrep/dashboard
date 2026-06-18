@@ -78,7 +78,7 @@ $google_reviews        = $google_reviews ?? Shyft_Dashboard_Google_Reviews::get_
 	<header class="shyft-dashboard__header">
 		<div class="shyft-dashboard__header-bar">
 			<div class="shyft-dashboard__brand">
-				<img src="<?php echo esc_url( $logo_url ); ?>" alt="<?php esc_attr_e( 'SHYFT', 'shyft-dashboard' ); ?>" class="shyft-dashboard__logo" width="120" height="40">
+				<?php include SHYFT_DASHBOARD_PATH . 'templates/partials/brand-logo.php'; ?>
 			</div>
 			<div class="shyft-dashboard__header-toolbar">
 				<?php

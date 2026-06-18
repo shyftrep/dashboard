@@ -191,8 +191,16 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 	object-fit: contain;
 }
 
-[data-theme="dark"] .shyft-dashboard__header .shyft-dashboard__logo {
-	filter: brightness(0) invert(1);
+.shyft-dashboard__logo--theme-dark {
+	display: none;
+}
+
+[data-theme="dark"] .shyft-dashboard__header .shyft-dashboard__logo--theme-light {
+	display: none;
+}
+
+[data-theme="dark"] .shyft-dashboard__header .shyft-dashboard__logo--theme-dark {
+	display: block;
 }
 
 .shyft-dashboard__header-actions {
