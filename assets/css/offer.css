@@ -50,17 +50,14 @@
 	object-fit: contain;
 	border-radius: 20px;
 	box-shadow: 0 16px 40px rgba(20, 35, 28, 0.12);
-	transform: rotate(-1.5deg);
-	transition: 0.35s ease;
-}
-
-.shyft-offer__image:hover {
-	transform: rotate(0deg) scale(1.015);
 }
 
 .shyft-offer__content {
 	position: relative;
 	z-index: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
 	min-width: 0;
 	width: 100%;
 	max-width: 100%;
@@ -111,7 +108,7 @@
 
 .shyft-offer__icons {
 	list-style: none;
-	display: inline-grid;
+	display: grid;
 	grid-template-columns: 1fr;
 	gap: 12px;
 	width: max-content;
@@ -156,7 +153,9 @@
 }
 
 .shyft-offer__btn {
-	display: inline-flex;
+	display: flex;
+	width: 100%;
+	max-width: 100%;
 }
 
 .shyft-offer__button {
@@ -227,12 +226,7 @@
 		margin-left: 0;
 		margin-right: 0;
 		border-radius: 20px;
-		transform: none;
 		margin-bottom: 20px;
-	}
-
-	.shyft-offer__image:hover {
-		transform: none;
 	}
 
 	.shyft-offer__headline {
