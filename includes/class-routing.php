@@ -17,6 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 final class Shyft_Dashboard_Routing {
 
 	public const QUERY_VAR = 'shyft_dashboard';
+	public const VIEW_VAR  = 'shyft_view';
 
 	/**
 	 * Registers routing hooks.
@@ -90,6 +91,12 @@ final class Shyft_Dashboard_Routing {
 
 		$wp->query_vars[ self::QUERY_VAR ] = '1';
 
+		$view = self::get_view_from_path();
+
+		if ( '' !== $view ) {
+			$wp->query_vars[ self::VIEW_VAR ] = $view;
+		}
+
 		$period_days = self::get_period_from_path();
 
 		if ( null !== $period_days ) {
@@ -116,6 +123,11 @@ final class Shyft_Dashboard_Routing {
 	 */
 	public static function add_rewrite_rules(): void {
 		add_rewrite_rule(
+			'^dashboard/angebote/?$',
+			'index.php?' . self::QUERY_VAR . '=1&' . self::VIEW_VAR . '=angebote',
+			'top'
+		);
+		add_rewrite_rule(
 			'^dashboard/(7|30|90)/?$',
 			'index.php?' . self::QUERY_VAR . '=1&' . Shyft_Dashboard_Period::QUERY_VAR . '=$matches[1]',
 			'top'
@@ -131,6 +143,7 @@ final class Shyft_Dashboard_Routing {
 	 */
 	public static function add_query_vars( array $vars ): array {
 		$vars[] = self::QUERY_VAR;
+		$vars[] = self::VIEW_VAR;
 		$vars[] = Shyft_Dashboard_Period::QUERY_VAR;
 		return $vars;
 	}
@@ -297,6 +310,34 @@ final class Shyft_Dashboard_Routing {
 	}
 
 	/**
+	 * Current dashboard view slug.
+	 */
+	public static function get_dashboard_view(): string {
+		$view = (string) get_query_var( self::VIEW_VAR );
+
+		if ( 'angebote' === $view ) {
+			return 'angebote';
+		}
+
+		$path_view = self::get_view_from_path();
+
+		return '' !== $path_view ? $path_view : 'overview';
+	}
+
+	/**
+	 * Reads optional sub-view from /dashboard/{view}.
+	 */
+	private static function get_view_from_path(): string {
+		$path = self::get_dashboard_request_path();
+
+		if ( preg_match( '#^dashboard/angebote$#', $path ) ) {
+			return 'angebote';
+		}
+
+		return '';
+	}
+
+	/**
 	 * Reads the period segment from /dashboard/{days}/ when present.
 	 */
 	private static function get_period_from_path(): ?int {
@@ -423,6 +464,11 @@ final class Shyft_Dashboard_Routing {
 	public static function print_footer_assets(): void {
 		self::ensure_dashboard_assets_enqueued();
 
+		if ( 'angebote' === self::get_dashboard_view() ) {
+			wp_print_footer_scripts();
+			return;
+		}
+
 		if ( wp_script_is( 'shyft-dashboard', 'registered' ) || wp_script_is( 'shyft-dashboard', 'enqueued' ) ) {
 			wp_print_footer_scripts( array( 'shyft-dashboard' ) );
 			return;
@@ -452,6 +498,11 @@ final class Shyft_Dashboard_Routing {
 	 * Enqueues dashboard assets and renders the template.
 	 */
 	private static function render_dashboard(): void {
+		if ( 'angebote' === self::get_dashboard_view() ) {
+			self::render_offers_dashboard();
+			return;
+		}
+
 		$current_user      = wp_get_current_user();
 		$logo_url          = Shyft_Dashboard_Settings::get_logo_url();
 		$show_website_link = Shyft_Dashboard_Roles::can_edit_website( $current_user );
@@ -525,6 +576,39 @@ final class Shyft_Dashboard_Routing {
 	}
 
 	/**
+	 * Renders the offers management dashboard page.
+	 */
+	private static function render_offers_dashboard(): void {
+		if ( ! Shyft_Dashboard_Offers::can_manage() ) {
+			wp_safe_redirect( self::get_dashboard_url() );
+			exit;
+		}
+
+		$current_user      = wp_get_current_user();
+		$logo_url          = Shyft_Dashboard_Settings::get_logo_url();
+		$show_website_link = Shyft_Dashboard_Roles::can_edit_website( $current_user );
+		$website_url       = home_url( '/' );
+		$logout_url        = wp_logout_url( home_url( '/' ) );
+		$form_action       = admin_url( 'admin-post.php' );
+		$offers            = Shyft_Dashboard_Offers::get_all_offers();
+		$flash             = Shyft_Dashboard_Offers::get_flash_message();
+		$edit_offer        = null;
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Editor prefill only.
+		if ( isset( $_GET['edit'] ) ) {
+			$edit_offer = Shyft_Dashboard_Offers::get_offer( absint( wp_unslash( (string) $_GET['edit'] ) ) );
+		}
+
+		$template = SHYFT_DASHBOARD_PATH . 'templates/dashboard-offers.php';
+
+		if ( ! file_exists( $template ) ) {
+			wp_die( esc_html__( 'Angebots-Vorlage nicht gefunden.', 'shyft-dashboard' ) );
+		}
+
+		include $template;
+	}
+
+	/**
 	 * Enqueues dashboard assets and runs wp_enqueue_scripts once (theme hooks never fire on this route).
 	 */
 	private static function ensure_dashboard_assets_enqueued(): void {
@@ -574,6 +658,17 @@ final class Shyft_Dashboard_Routing {
 				),
 			)
 		);
+
+		if ( 'angebote' === self::get_dashboard_view() ) {
+			wp_enqueue_media();
+			wp_enqueue_script(
+				'shyft-dashboard-offers',
+				SHYFT_DASHBOARD_URL . 'assets/js/dashboard-offers.js',
+				array( 'jquery' ),
+				SHYFT_DASHBOARD_VERSION,
+				true
+			);
+		}
 	}
 
 	/**
@@ -581,6 +676,10 @@ final class Shyft_Dashboard_Routing {
 	 */
 	public static function isolate_dashboard_assets(): void {
 		if ( ! self::is_dashboard_request() ) {
+			return;
+		}
+
+		if ( 'angebote' === self::get_dashboard_view() ) {
 			return;
 		}
 

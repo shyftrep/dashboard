@@ -13,6 +13,7 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 
 require_once plugin_dir_path( __FILE__ ) . 'includes/class-roles.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/class-google-reviews.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/class-offers.php';
 
 Shyft_Dashboard_Roles::remove_role();
 
@@ -27,6 +28,8 @@ delete_option( 'shyft_dashboard_google_api_key' );
 delete_option( 'shyft_dashboard_google_reviews_custom_css' );
 delete_option( Shyft_Dashboard_Google_Reviews::OPTION_DATA );
 delete_option( Shyft_Dashboard_Google_Reviews::OPTION_LAST_SEEN );
+
+Shyft_Dashboard_Offers::delete_all();
 
 wp_clear_scheduled_hook( Shyft_Dashboard_Google_Reviews::CRON_HOOK );
 

@@ -20,6 +20,7 @@ final class Shyft_Dashboard_Google_Reviews {
 	public const OPTION_LAST_SEEN = 'shyft_dashboard_google_reviews_last_seen_at';
 	public const CRON_HOOK       = 'shyft_dashboard_sync_google_reviews';
 	public const MAX_STORED_REVIEWS = 10;
+	public const DASHBOARD_REVIEW_LIMIT = 5;
 
 	private const API_TIMEOUT = 20;
 
@@ -381,6 +382,22 @@ final class Shyft_Dashboard_Google_Reviews {
 	public static function clear_data(): void {
 		delete_option( self::OPTION_DATA );
 		delete_option( self::OPTION_LAST_SEEN );
+	}
+
+	/**
+	 * Latest reviews for the SHYFT dashboard list.
+	 *
+	 * @param array<string, mixed>|null $data Stored payload.
+	 * @return list<array<string, mixed>>
+	 */
+	public static function get_dashboard_reviews( ?array $data = null ): array {
+		$data = $data ?? self::get_stored_data();
+
+		return array_slice(
+			(array) ( $data['reviews'] ?? array() ),
+			0,
+			self::DASHBOARD_REVIEW_LIMIT
+		);
 	}
 
 	/**

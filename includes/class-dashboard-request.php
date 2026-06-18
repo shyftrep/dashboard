@@ -40,6 +40,10 @@ final class Shyft_Dashboard_Request {
 			return true;
 		}
 
+		if ( preg_match( '#^dashboard/angebote$#', $path ) ) {
+			return true;
+		}
+
 		if ( preg_match( '#^dashboard/(7|30|90)$#', $path ) ) {
 			return true;
 		}

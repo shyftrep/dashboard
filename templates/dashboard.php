@@ -94,6 +94,10 @@ $google_reviews_manage_url = $google_reviews_manage_url ?? '';
 			</div>
 		</div>
 		<div class="shyft-dashboard__header-actions">
+			<?php
+			$active_view = 'overview';
+			include SHYFT_DASHBOARD_PATH . 'templates/partials/dashboard-nav.php';
+			?>
 			<?php if ( ! empty( $show_website_link ) ) : ?>
 				<a href="<?php echo esc_url( $website_url ); ?>" class="shyft-dashboard__website-link">
 					<?php esc_html_e( 'Website bearbeiten', 'shyft-dashboard' ); ?>
@@ -421,7 +425,10 @@ $google_reviews_manage_url = $google_reviews_manage_url ?? '';
 			</div>
 		</section>
 
-		<?php if ( ! empty( $google_reviews['available'] ) && ! empty( $google_reviews['reviews'] ) ) : ?>
+		<?php
+		$dashboard_reviews = Shyft_Dashboard_Google_Reviews::get_dashboard_reviews( $google_reviews );
+		?>
+		<?php if ( ! empty( $google_reviews['available'] ) && ! empty( $dashboard_reviews ) ) : ?>
 			<section class="shyft-dashboard__section" id="shyft-google-reviews" aria-label="<?php esc_attr_e( 'Google Bewertungen', 'shyft-dashboard' ); ?>">
 				<header class="shyft-section-header shyft-section-header--split">
 					<div>
@@ -450,7 +457,7 @@ $google_reviews_manage_url = $google_reviews_manage_url ?? '';
 
 				<article class="shyft-card shyft-card--panel">
 					<ul class="shyft-reviews-dash">
-						<?php foreach ( (array) $google_reviews['reviews'] as $review ) : ?>
+						<?php foreach ( $dashboard_reviews as $review ) : ?>
 							<?php
 							if ( ! is_array( $review ) ) {
 								continue;
@@ -556,33 +563,6 @@ $google_reviews_manage_url = $google_reviews_manage_url ?? '';
 		</section>
 
 		<?php include SHYFT_DASHBOARD_PATH . 'templates/partials/tasks-tracker.php'; ?>
-
-		<?php if ( current_user_can( 'manage_options' ) && Shyft_Dashboard_Google_Reviews::is_configured() ) : ?>
-			<section class="shyft-dashboard__section" aria-label="<?php esc_attr_e( 'Google Reviews Widget', 'shyft-dashboard' ); ?>">
-				<header class="shyft-section-header">
-					<p class="shyft-section-label"><?php esc_html_e( 'Website', 'shyft-dashboard' ); ?></p>
-					<h2 class="shyft-section-title"><?php esc_html_e( 'Google Reviews Widget', 'shyft-dashboard' ); ?></h2>
-				</header>
-				<article class="shyft-card shyft-card--panel">
-					<p class="shyft-card__description">
-						<?php esc_html_e( 'Bewertungen werden automatisch synchronisiert. Auf der Website einbinden mit:', 'shyft-dashboard' ); ?>
-						<code>[clicklabs_reviews]</code>
-						<?php esc_html_e( 'oder dem Elementor-Widget „Google Reviews (clicklabs)“.', 'shyft-dashboard' ); ?>
-					</p>
-					<?php if ( ! empty( $google_reviews['fetched_at'] ) ) : ?>
-						<p class="shyft-empty">
-							<?php
-							printf(
-								/* translators: %s: datetime */
-								esc_html__( 'Zuletzt aktualisiert: %s', 'shyft-dashboard' ),
-								esc_html( (string) $google_reviews['fetched_at'] )
-							);
-							?>
-						</p>
-					<?php endif; ?>
-				</article>
-			</section>
-		<?php endif; ?>
 	</main>
 
 	<footer class="shyft-dashboard__footer">

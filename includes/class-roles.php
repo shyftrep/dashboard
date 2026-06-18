@@ -39,7 +39,8 @@ final class Shyft_Dashboard_Roles {
 			self::ROLE_KUNDE,
 			__( 'Kunde', 'shyft-dashboard' ),
 			array(
-				'read' => true,
+				'read'                => true,
+				'shyft_manage_offers' => true,
 			)
 		);
 	}
