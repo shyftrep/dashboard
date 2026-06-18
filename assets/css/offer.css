@@ -13,26 +13,23 @@
 	position: relative;
 	overflow: hidden;
 	display: grid;
-	grid-template-columns: minmax(220px, 38%) minmax(0, 1fr);
-	gap: clamp(24px, 4vw, 48px);
+	grid-template-columns: minmax(0, 240px) minmax(0, 1fr);
+	gap: clamp(20px, 3vw, 32px);
 	align-items: center;
 	width: 100%;
 	max-width: 100%;
 	margin: 0;
-	padding: clamp(40px, 6vw, 90px) clamp(20px, 5vw, 80px);
-	background:
-		radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.9), transparent 32%),
-		radial-gradient(circle at 85% 15%, rgba(39, 201, 104, 0.14), transparent 34%),
-		linear-gradient(135deg, #f3f7f4 0%, #e7eeea 100%);
-	border-radius: 34px;
+	padding: 15px;
+	background: transparent;
+	border-radius: 0;
 }
 
 .shyft-offer::before {
 	content: "";
 	position: absolute;
-	inset: 22px;
+	inset: 15px;
 	border: 1px solid rgba(255, 255, 255, 0.75);
-	border-radius: 28px;
+	border-radius: 20px;
 	pointer-events: none;
 }
 
@@ -44,11 +41,11 @@
 .shyft-offer__image {
 	display: block;
 	width: 100%;
-	max-width: 100%;
+	max-width: 240px;
 	height: auto;
 	object-fit: contain;
-	border-radius: 24px;
-	box-shadow: 0 24px 70px rgba(20, 35, 28, 0.16);
+	border-radius: 16px;
+	box-shadow: 0 16px 40px rgba(20, 35, 28, 0.12);
 	transform: rotate(-1.5deg);
 	transition: 0.35s ease;
 }
@@ -68,7 +65,7 @@
 .shyft-offer__deadline {
 	display: inline-flex;
 	width: fit-content;
-	margin: 0 0 14px;
+	margin: 0 0 24px;
 	padding: 8px 14px;
 	border-radius: 999px;
 	background: rgba(255, 255, 255, 0.68);
@@ -203,18 +200,18 @@
 @media (max-width: 767px) {
 	.shyft-offer {
 		grid-template-columns: 1fr;
-		border-radius: 18px;
-		padding: 28px 18px;
+		padding: 15px;
 	}
 
 	.shyft-offer::before {
-		display: none;
+		inset: 15px;
 	}
 
 	.shyft-offer__image {
-		border-radius: 16px;
+		max-width: 200px;
+		border-radius: 14px;
 		transform: none;
-		margin-bottom: 24px;
+		margin-bottom: 20px;
 	}
 
 	.shyft-offer__image:hover {
