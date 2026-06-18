@@ -1,52 +1,67 @@
 /**
- * Public offer cards (clicklabs / SHYFT).
+ * Public offer cards (clicklabs / SHYFT) – minimal layout for Elementor styling.
  */
 
 .shyft-offers {
 	display: grid;
 	gap: 24px;
+	width: 100%;
+	max-width: 100%;
 }
 
 .shyft-offer {
 	display: grid;
-	grid-template-columns: minmax(220px, 360px) minmax(0, 1fr);
+	grid-template-columns: minmax(180px, 320px) minmax(0, 1fr);
 	gap: 28px;
 	align-items: center;
-	padding: 24px;
-	border: 1px solid rgba(23, 42, 57, 0.1);
-	border-radius: 20px;
-	background: #fff;
-	box-shadow: 0 16px 40px rgba(23, 42, 57, 0.06);
+	width: 100%;
+	max-width: 100%;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	box-shadow: none;
 }
 
 .shyft-offer__media {
 	overflow: hidden;
-	border-radius: 16px;
-	background: #f3f6f5;
+	background: transparent;
 }
 
 .shyft-offer__image {
 	display: block;
 	width: 100%;
+	max-width: 100%;
 	height: auto;
-	aspect-ratio: 4 / 3;
-	object-fit: cover;
+	object-fit: contain;
 }
 
 .shyft-offer__content {
 	min-width: 0;
+	width: 100%;
+	max-width: 100%;
+}
+
+.shyft-offer__deadline {
+	margin: 0 0 12px;
+	padding: 0;
+	background: transparent;
+	color: inherit;
+	font-size: 0.9rem;
+	font-weight: 600;
+	line-height: 1.4;
 }
 
 .shyft-offer__headline {
 	margin: 0 0 12px;
 	font-size: clamp(1.5rem, 2vw, 2rem);
 	line-height: 1.15;
-	color: #172a39;
+	color: inherit;
 }
 
 .shyft-offer__text {
 	margin: 0 0 18px;
-	color: rgba(23, 42, 57, 0.72);
+	color: inherit;
 	font-size: 1rem;
 	line-height: 1.65;
 }
@@ -71,7 +86,7 @@
 	display: flex;
 	align-items: center;
 	gap: 10px;
-	color: #172a39;
+	color: inherit;
 	font-size: 0.95rem;
 	line-height: 1.4;
 }
@@ -80,41 +95,26 @@
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	width: 28px;
-	height: 28px;
-	border-radius: 999px;
-	background: rgba(252, 87, 59, 0.12);
-	color: #fc573b;
+	width: auto;
+	height: auto;
+	background: transparent;
+	color: inherit;
 	flex-shrink: 0;
-	font-size: 14px;
-	line-height: 1;
-}
-
-.shyft-offer__icon .dashicons {
-	width: 18px;
-	height: 18px;
-	font-size: 18px;
 }
 
 .shyft-offer__check {
 	display: block;
 }
 
-.shyft-offer__icon img {
-	display: block;
-	width: 18px;
-	height: 18px;
-	object-fit: contain;
-}
-
 .shyft-offer__button {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
+	gap: 10px;
 	min-height: 46px;
 	padding: 0 22px;
 	border-radius: 999px;
-	background: #172a39;
+	background: #25d366;
 	color: #fff !important;
 	text-decoration: none;
 	font-size: 0.95rem;
@@ -124,14 +124,27 @@
 
 .shyft-offer__button:hover,
 .shyft-offer__button:focus {
-	background: #fc573b;
+	background: #20ba5a;
 	color: #fff !important;
+}
+
+.shyft-offer__button-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+
+.shyft-offer__button-icon svg {
+	display: block;
+	width: 20px;
+	height: 20px;
+	fill: currentColor;
 }
 
 @media (max-width: 767px) {
 	.shyft-offer {
 		grid-template-columns: 1fr;
-		padding: 18px;
 	}
 
 	.shyft-offer__headline {

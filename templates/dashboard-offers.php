@@ -83,6 +83,7 @@ $is_editing        = is_array( $edit_offer );
 			<p class="shyft-dashboard__subtitle">
 				<?php esc_html_e( 'Website-Einbindung:', 'shyft-dashboard' ); ?>
 				<code>[clicklabs_angebot]</code>
+				<?php esc_html_e( '· Elementor-Widget „Angebot (clicklabs)“', 'shyft-dashboard' ); ?>
 			</p>
 		</div>
 

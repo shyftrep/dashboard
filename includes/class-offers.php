@@ -81,7 +81,9 @@ final class Shyft_Dashboard_Offers {
 					'name'          => __( 'Angebote', 'shyft-dashboard' ),
 					'singular_name' => __( 'Angebot', 'shyft-dashboard' ),
 				),
-				'public'              => false,
+				'public'              => true,
+				'publicly_queryable'  => false,
+				'show_in_nav_menus'   => false,
 				'show_ui'             => current_user_can( 'manage_options' ),
 				'show_in_menu'        => current_user_can( 'manage_options' ),
 				'menu_icon'           => 'dashicons-megaphone',
@@ -104,7 +106,6 @@ final class Shyft_Dashboard_Offers {
 				'supports'            => array( 'title', 'page-attributes' ),
 				'has_archive'         => false,
 				'exclude_from_search' => true,
-				'publicly_queryable'  => false,
 			)
 		);
 	}
@@ -134,22 +135,84 @@ final class Shyft_Dashboard_Offers {
 	 * @return list<array<string, mixed>>
 	 */
 	public static function get_public_offers(): array {
-		$timed = self::get_active_timed_offers();
+		$offers = array_map( array( self::class, 'format_offer' ), self::get_published_offer_posts() );
+		$timed  = array();
+
+		foreach ( $offers as $offer ) {
+			if ( self::TYPE_TIMED === ( $offer['type'] ?? '' ) && ! empty( $offer['is_timed_live'] ) ) {
+				$timed[] = $offer;
+			}
+		}
 
 		if ( ! empty( $timed ) ) {
 			return $timed;
 		}
 
-		return self::get_active_standard_offers();
+		$standard = array();
+
+		foreach ( $offers as $offer ) {
+			if ( self::TYPE_TIMED === ( $offer['type'] ?? '' ) ) {
+				continue;
+			}
+
+			if ( ! self::is_offer_active( (int) ( $offer['id'] ?? 0 ) ) ) {
+				continue;
+			}
+
+			$standard[] = $offer;
+		}
+
+		return $standard;
 	}
 
 	/**
 	 * @return list<array<string, mixed>>
 	 */
 	public static function get_all_offers(): array {
-		$posts = get_posts( self::query_args() );
+		return array_map( array( self::class, 'format_offer' ), self::get_published_offer_posts() );
+	}
 
-		return array_map( array( self::class, 'format_offer' ), $posts );
+	/**
+	 * Loads published offers directly (private CPT queries are unreliable on the frontend).
+	 *
+	 * @return list<WP_Post>
+	 */
+	private static function get_published_offer_posts(): array {
+		global $wpdb;
+
+		$post_ids = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT ID FROM {$wpdb->posts} WHERE post_type = %s AND post_status = %s ORDER BY menu_order ASC, ID ASC",
+				self::POST_TYPE,
+				'publish'
+			)
+		);
+
+		if ( empty( $post_ids ) ) {
+			return array();
+		}
+
+		$posts = array();
+
+		foreach ( $post_ids as $post_id ) {
+			$post = get_post( (int) $post_id );
+
+			if ( $post instanceof WP_Post ) {
+				$posts[] = $post;
+			}
+		}
+
+		return $posts;
+	}
+
+	private static function is_offer_active( int $offer_id ): bool {
+		$active = get_post_meta( $offer_id, self::META_ACTIVE, true );
+
+		if ( '' === (string) $active ) {
+			return true;
+		}
+
+		return '1' === (string) $active;
 	}
 
 	/**
@@ -166,107 +229,17 @@ final class Shyft_Dashboard_Offers {
 	}
 
 	/**
-	 * @return list<array<string, mixed>>
-	 */
-	private static function get_active_standard_offers(): array {
-		$posts = get_posts(
-			self::query_args(
-				array(
-					'meta_query' => array(
-						'relation' => 'AND',
-						array(
-							'relation' => 'OR',
-							array(
-								'key'   => self::META_TYPE,
-								'value' => self::TYPE_STANDARD,
-							),
-							array(
-								'key'     => self::META_TYPE,
-								'compare' => 'NOT EXISTS',
-							),
-							array(
-								'key'   => self::META_TYPE,
-								'value' => '',
-							),
-						),
-						array(
-							'relation' => 'OR',
-							array(
-								'key'   => self::META_ACTIVE,
-								'value' => '1',
-							),
-							array(
-								'key'     => self::META_ACTIVE,
-								'compare' => 'NOT EXISTS',
-							),
-						),
-					),
-				)
-			)
-		);
-
-		return array_map( array( self::class, 'format_offer' ), $posts );
-	}
-
-	/**
-	 * @return list<array<string, mixed>>
-	 */
-	private static function get_active_timed_offers(): array {
-		$now   = time();
-		$posts = get_posts(
-			self::query_args(
-				array(
-					'meta_query' => array(
-						array(
-							'key'   => self::META_TYPE,
-							'value' => self::TYPE_TIMED,
-						),
-					),
-				)
-			)
-		);
-
-		$active = array();
-
-		foreach ( $posts as $post ) {
-			$start = (int) get_post_meta( $post->ID, self::META_STARTS_AT, true );
-			$end   = (int) get_post_meta( $post->ID, self::META_ENDS_AT, true );
-
-			if ( $start > 0 && $end > 0 && $start <= $now && $end >= $now ) {
-				$active[] = self::format_offer( $post );
-			}
-		}
-
-		return $active;
-	}
-
-	/**
-	 * Base query for offer posts (bypasses private CPT permission checks on the frontend).
-	 *
-	 * @param array<string, mixed> $args Additional WP_Query arguments.
-	 * @return array<string, mixed>
-	 */
-	private static function query_args( array $args = array() ): array {
-		return array_merge(
-			array(
-				'post_type'      => self::POST_TYPE,
-				'post_status'    => 'publish',
-				'posts_per_page' => -1,
-				'orderby'        => 'menu_order',
-				'order'          => 'ASC',
-				'perm'           => '',
-			),
-			$args
-		);
-	}
-
-	/**
 	 * @return array<string, mixed>
 	 */
 	private static function format_offer( WP_Post $post ): array {
 		$image_id  = (int) get_post_meta( $post->ID, self::META_IMAGE_ID, true );
 		$image_url = $image_id > 0 ? (string) wp_get_attachment_image_url( $image_id, 'large' ) : '';
 		$type      = (string) get_post_meta( $post->ID, self::META_TYPE, true );
+		$headline  = (string) get_post_meta( $post->ID, self::META_HEADLINE, true );
+
+		if ( '' === $headline ) {
+			$headline = get_the_title( $post );
+		}
 
 		if ( '' === $type ) {
 			$type = self::TYPE_STANDARD;
@@ -276,12 +249,12 @@ final class Shyft_Dashboard_Offers {
 			'id'            => $post->ID,
 			'title'         => get_the_title( $post ),
 			'type'          => $type,
-			'active'        => '1' === (string) get_post_meta( $post->ID, self::META_ACTIVE, true ),
+			'active'        => self::is_offer_active( $post->ID ),
 			'starts_at'     => (int) get_post_meta( $post->ID, self::META_STARTS_AT, true ),
 			'ends_at'       => (int) get_post_meta( $post->ID, self::META_ENDS_AT, true ),
 			'image_id'      => $image_id,
 			'image_url'     => $image_url,
-			'headline'      => (string) get_post_meta( $post->ID, self::META_HEADLINE, true ),
+			'headline'      => $headline,
 			'text'          => (string) get_post_meta( $post->ID, self::META_TEXT, true ),
 			'icons'         => self::decode_feature_labels( (string) get_post_meta( $post->ID, self::META_ICONS, true ) ),
 			'button_label'  => (string) get_post_meta( $post->ID, self::META_BUTTON_LABEL, true ),
@@ -313,12 +286,14 @@ final class Shyft_Dashboard_Offers {
 
 		foreach ( $data as $item ) {
 			if ( is_string( $item ) ) {
-				$label = sanitize_text_field( $item );
+				$label = self::normalize_feature_label( $item );
 			} elseif ( is_array( $item ) ) {
-				$label = sanitize_text_field( (string) ( $item['label'] ?? $item['icon'] ?? '' ) );
+				$label = self::normalize_feature_label( (string) ( $item['label'] ?? $item['icon'] ?? '' ) );
 			} else {
 				continue;
 			}
+
+			$label = sanitize_text_field( $label );
 
 			if ( '' === $label ) {
 				continue;
@@ -328,6 +303,27 @@ final class Shyft_Dashboard_Offers {
 		}
 
 		return $labels;
+	}
+
+	/**
+	 * Fixes umlauts broken by stripped JSON unicode escapes (e.g. u00fc -> ü).
+	 */
+	private static function normalize_feature_label( string $label ): string {
+		if ( ! preg_match( '/u[0-9a-fA-F]{4}/', $label ) ) {
+			return $label;
+		}
+
+		$fixed = preg_replace_callback(
+			'/u([0-9a-fA-F]{4})/',
+			static function ( array $matches ): string {
+				$decoded = json_decode( '"\\u' . $matches[1] . '"' );
+
+				return is_string( $decoded ) ? $decoded : $matches[0];
+			},
+			$label
+		);
+
+		return is_string( $fixed ) ? $fixed : $label;
 	}
 
 	public static function handle_save(): void {
@@ -391,7 +387,7 @@ final class Shyft_Dashboard_Offers {
 		update_post_meta( $offer_id, self::META_IMAGE_ID, $image_id );
 		update_post_meta( $offer_id, self::META_BUTTON_LABEL, isset( $_POST['offer_button_label'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['offer_button_label'] ) ) : '' );
 		update_post_meta( $offer_id, self::META_BUTTON_URL, isset( $_POST['offer_button_url'] ) ? esc_url_raw( wp_unslash( (string) $_POST['offer_button_url'] ) ) : '' );
-		update_post_meta( $offer_id, self::META_ICONS, wp_json_encode( self::sanitize_feature_labels_from_request() ) );
+		update_post_meta( $offer_id, self::META_ICONS, wp_json_encode( self::sanitize_feature_labels_from_request(), JSON_UNESCAPED_UNICODE ) );
 
 		if ( self::TYPE_TIMED === $type ) {
 			update_post_meta( $offer_id, self::META_STARTS_AT, self::parse_datetime_local( 'offer_starts_at' ) );
@@ -556,6 +552,18 @@ final class Shyft_Dashboard_Offers {
 		}
 
 		return wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $timestamp );
+	}
+
+	public static function format_public_end_label( int $timestamp ): string {
+		if ( $timestamp <= 0 ) {
+			return '';
+		}
+
+		return sprintf(
+			/* translators: %s: formatted offer end date and time */
+			__( 'Gültig bis %s', 'shyft-dashboard' ),
+			wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $timestamp )
+		);
 	}
 
 	/**
