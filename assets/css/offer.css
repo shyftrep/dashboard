@@ -36,15 +36,19 @@
 .shyft-offer__media {
 	position: relative;
 	z-index: 1;
+	display: flex;
+	justify-content: flex-end;
+	align-items: center;
 }
 
 .shyft-offer__image {
 	display: block;
-	width: 100%;
-	max-width: 100%;
+	width: 80%;
+	max-width: 80%;
 	height: auto;
+	margin-left: auto;
 	object-fit: contain;
-	border-radius: 16px;
+	border-radius: 20px;
 	box-shadow: 0 16px 40px rgba(20, 35, 28, 0.12);
 	transform: rotate(-1.5deg);
 	transition: 0.35s ease;
@@ -108,7 +112,7 @@
 .shyft-offer__icons {
 	list-style: none;
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	grid-template-columns: 1fr;
 	gap: 12px;
 	margin: 26px 0 32px;
 	padding: 0;
@@ -119,7 +123,8 @@
 	align-items: center;
 	gap: 12px;
 	padding: 13px 18px;
-	width: auto;
+	width: fit-content;
+	max-width: 100%;
 	min-width: 0;
 	border-radius: 999px;
 	background: rgba(255, 255, 255, 0.64);
@@ -201,16 +206,25 @@
 @media (max-width: 767px) {
 	.shyft-offer {
 		grid-template-columns: 1fr;
-		padding: 15px;
+		padding: 12px;
 	}
 
 	.shyft-offer::before {
-		inset: 15px;
+		inset: 10px;
+		border-radius: 10px;
+	}
+
+	.shyft-offer__media {
+		width: 100%;
+		justify-content: center;
 	}
 
 	.shyft-offer__image {
+		width: 100%;
 		max-width: 100%;
-		border-radius: 14px;
+		margin-left: 0;
+		margin-right: 0;
+		border-radius: 20px;
 		transform: none;
 		margin-bottom: 20px;
 	}
@@ -220,12 +234,8 @@
 	}
 
 	.shyft-offer__headline {
-		font-size: 38px;
+		font-size: 34px;
 		line-height: 1;
-	}
-
-	.shyft-offer__icons {
-		grid-template-columns: 1fr;
 	}
 
 	.shyft-offer__icon-item {
