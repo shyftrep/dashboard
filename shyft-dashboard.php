@@ -3,7 +3,7 @@
  * Plugin Name:       SHYFT Dashboard
  * Plugin URI:        https://shyft.rocks
  * Description:       Gebrandetes Kunden-Dashboard unter /dashboard – Anfragen, Status, Matomo und Änderungswünsche.
- * Version:           2.3.17
+ * Version:           2.3.18
  * Requires at least: 6.4
  * Requires PHP:      8.1
  * Author:            SHYFT / clicklabs
