@@ -59,8 +59,16 @@ final class Shyft_Dashboard_Offers {
 		foreach ( $roles as $role_slug ) {
 			$role = get_role( $role_slug );
 
-			if ( $role && ! $role->has_cap( self::CAP_MANAGE ) ) {
+			if ( ! $role ) {
+				continue;
+			}
+
+			if ( ! $role->has_cap( self::CAP_MANAGE ) ) {
 				$role->add_cap( self::CAP_MANAGE );
+			}
+
+			if ( ! $role->has_cap( 'upload_files' ) ) {
+				$role->add_cap( 'upload_files' );
 			}
 		}
 	}
@@ -237,7 +245,7 @@ final class Shyft_Dashboard_Offers {
 			'image_url'     => $image_url,
 			'headline'      => (string) get_post_meta( $post->ID, self::META_HEADLINE, true ),
 			'text'          => (string) get_post_meta( $post->ID, self::META_TEXT, true ),
-			'icons'         => self::decode_icons( (string) get_post_meta( $post->ID, self::META_ICONS, true ) ),
+			'icons'         => self::decode_feature_labels( (string) get_post_meta( $post->ID, self::META_ICONS, true ) ),
 			'button_label'  => (string) get_post_meta( $post->ID, self::META_BUTTON_LABEL, true ),
 			'button_url'    => esc_url_raw( (string) get_post_meta( $post->ID, self::META_BUTTON_URL, true ) ),
 			'sort'          => (int) $post->menu_order,
@@ -254,36 +262,34 @@ final class Shyft_Dashboard_Offers {
 	}
 
 	/**
-	 * @return list<array{icon: string, label: string}>
+	 * @return list<string>
 	 */
-	private static function decode_icons( string $raw ): array {
+	private static function decode_feature_labels( string $raw ): array {
 		$data = json_decode( $raw, true );
 
 		if ( ! is_array( $data ) ) {
 			return array();
 		}
 
-		$icons = array();
+		$labels = array();
 
 		foreach ( $data as $item ) {
-			if ( ! is_array( $item ) ) {
+			if ( is_string( $item ) ) {
+				$label = sanitize_text_field( $item );
+			} elseif ( is_array( $item ) ) {
+				$label = sanitize_text_field( (string) ( $item['label'] ?? $item['icon'] ?? '' ) );
+			} else {
 				continue;
 			}
 
-			$icon  = sanitize_text_field( (string) ( $item['icon'] ?? '' ) );
-			$label = sanitize_text_field( (string) ( $item['label'] ?? '' ) );
-
-			if ( '' === $icon && '' === $label ) {
+			if ( '' === $label ) {
 				continue;
 			}
 
-			$icons[] = array(
-				'icon'  => $icon,
-				'label' => $label,
-			);
+			$labels[] = $label;
 		}
 
-		return $icons;
+		return $labels;
 	}
 
 	public static function handle_save(): void {
@@ -336,7 +342,7 @@ final class Shyft_Dashboard_Offers {
 		update_post_meta( $offer_id, self::META_IMAGE_ID, isset( $_POST['offer_image_id'] ) ? absint( wp_unslash( (string) $_POST['offer_image_id'] ) ) : 0 );
 		update_post_meta( $offer_id, self::META_BUTTON_LABEL, isset( $_POST['offer_button_label'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['offer_button_label'] ) ) : '' );
 		update_post_meta( $offer_id, self::META_BUTTON_URL, isset( $_POST['offer_button_url'] ) ? esc_url_raw( wp_unslash( (string) $_POST['offer_button_url'] ) ) : '' );
-		update_post_meta( $offer_id, self::META_ICONS, wp_json_encode( self::sanitize_icons_from_request() ) );
+		update_post_meta( $offer_id, self::META_ICONS, wp_json_encode( self::sanitize_feature_labels_from_request() ) );
 
 		if ( self::TYPE_TIMED === $type ) {
 			update_post_meta( $offer_id, self::META_STARTS_AT, self::parse_datetime_local( 'offer_starts_at' ) );
@@ -370,34 +376,28 @@ final class Shyft_Dashboard_Offers {
 	}
 
 	/**
-	 * @return list<array{icon: string, label: string}>
+	 * @return list<string>
 	 */
-	private static function sanitize_icons_from_request(): array {
-		$icons  = array();
-		$raw    = $_POST['offer_icons'] ?? array();
-		$labels = $_POST['offer_icon_labels'] ?? array();
+	private static function sanitize_feature_labels_from_request(): array {
+		$labels = $_POST['offer_feature_labels'] ?? array();
 
-		if ( ! is_array( $raw ) || ! is_array( $labels ) ) {
+		if ( ! is_array( $labels ) ) {
 			return array();
 		}
 
-		$count = min( 8, max( count( $raw ), count( $labels ) ) );
+		$clean = array();
 
-		for ( $i = 0; $i < $count; $i++ ) {
-			$icon  = sanitize_text_field( wp_unslash( (string) ( $raw[ $i ] ?? '' ) ) );
-			$label = sanitize_text_field( wp_unslash( (string) ( $labels[ $i ] ?? '' ) ) );
+		foreach ( array_slice( $labels, 0, 8 ) as $label ) {
+			$label = sanitize_text_field( wp_unslash( (string) $label ) );
 
-			if ( '' === $icon && '' === $label ) {
+			if ( '' === $label ) {
 				continue;
 			}
 
-			$icons[] = array(
-				'icon'  => $icon,
-				'label' => $label,
-			);
+			$clean[] = $label;
 		}
 
-		return $icons;
+		return $clean;
 	}
 
 	private static function parse_datetime_local( string $field ): int {

@@ -85,21 +85,19 @@ final class Shyft_Dashboard_Offers_Display {
 				<?php endif; ?>
 				<?php if ( ! empty( $icons ) ) : ?>
 					<ul class="shyft-offer__icons">
-						<?php foreach ( $icons as $icon_item ) : ?>
+						<?php foreach ( $icons as $label ) : ?>
 							<?php
-							if ( ! is_array( $icon_item ) ) {
+							$label = is_string( $label ) ? $label : '';
+
+							if ( '' === $label ) {
 								continue;
 							}
-							$icon  = (string) ( $icon_item['icon'] ?? '' );
-							$label = (string) ( $icon_item['label'] ?? '' );
 							?>
 							<li class="shyft-offer__icon-item">
 								<span class="shyft-offer__icon" aria-hidden="true">
-									<?php self::render_icon_markup( $icon ); ?>
+									<?php self::render_check_icon(); ?>
 								</span>
-								<?php if ( '' !== $label ) : ?>
-									<span class="shyft-offer__icon-label"><?php echo esc_html( $label ); ?></span>
-								<?php endif; ?>
+								<span class="shyft-offer__icon-label"><?php echo esc_html( $label ); ?></span>
 							</li>
 						<?php endforeach; ?>
 					</ul>
@@ -114,27 +112,8 @@ final class Shyft_Dashboard_Offers_Display {
 		<?php
 	}
 
-	private static function render_icon_markup( string $icon ): void {
-		if ( '' === $icon ) {
-			return;
-		}
-
-		if ( str_starts_with( $icon, 'http://' ) || str_starts_with( $icon, 'https://' ) ) {
-			printf(
-				'<img src="%s" alt="" width="20" height="20" loading="lazy" decoding="async">',
-				esc_url( $icon )
-			);
-
-			return;
-		}
-
-		if ( str_starts_with( $icon, 'dashicons-' ) ) {
-			echo '<span class="dashicons ' . esc_attr( $icon ) . '"></span>';
-
-			return;
-		}
-
-		echo esc_html( $icon );
+	private static function render_check_icon(): void {
+		echo '<svg class="shyft-offer__check" width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 10.5 8 14.5 16 6.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 	}
 
 	private static function enqueue_assets(): void {
@@ -143,7 +122,6 @@ final class Shyft_Dashboard_Offers_Display {
 		}
 
 		wp_enqueue_style( 'shyft-offer' );
-		wp_enqueue_style( 'dashicons' );
 		self::$assets_enqueued = true;
 	}
 }

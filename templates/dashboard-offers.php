@@ -178,12 +178,13 @@ $is_editing        = is_array( $edit_offer );
 									<input class="shyft-form__input" type="datetime-local" id="offer_ends_at" name="offer_ends_at" value="<?php echo esc_attr( Shyft_Dashboard_Offers::format_datetime_local( (int) ( $edit_offer['ends_at'] ?? 0 ) ) ); ?>">
 								</div>
 							</div>
+							<p class="shyft-form__hint"><?php esc_html_e( 'Während dieser Zeit ersetzt das Angebot alle Standard-Angebote auf der Website.', 'shyft-dashboard' ); ?></p>
 						</div>
 
-						<div class="shyft-form__row">
+						<div class="shyft-form__row" data-offer-standard-fields <?php echo ( $is_editing && Shyft_Dashboard_Offers::TYPE_TIMED === ( $edit_offer['type'] ?? '' ) ) ? 'hidden' : ''; ?>>
 							<label class="shyft-form__label">
 								<input type="checkbox" name="offer_active" value="1" <?php checked( ! $is_editing || ! empty( $edit_offer['active'] ) ); ?>>
-								<?php esc_html_e( 'Für Standard-Angebote aktiv', 'shyft-dashboard' ); ?>
+								<?php esc_html_e( 'Auf der Website anzeigen', 'shyft-dashboard' ); ?>
 							</label>
 						</div>
 
@@ -218,20 +219,20 @@ $is_editing        = is_array( $edit_offer );
 
 						<div class="shyft-form__row">
 							<div class="shyft-offer-form__icons-header">
-								<label class="shyft-form__label"><?php esc_html_e( 'Icon-Liste', 'shyft-dashboard' ); ?></label>
-								<button type="button" class="shyft-button shyft-button--secondary" data-offer-add-icon><?php esc_html_e( 'Icon hinzufügen', 'shyft-dashboard' ); ?></button>
+								<label class="shyft-form__label"><?php esc_html_e( 'Aufzählung', 'shyft-dashboard' ); ?></label>
+								<button type="button" class="shyft-button shyft-button--secondary" data-offer-add-feature><?php esc_html_e( 'Punkt hinzufügen', 'shyft-dashboard' ); ?></button>
 							</div>
-							<div class="shyft-offer-form__icons" data-offer-icons>
+							<p class="shyft-form__hint"><?php esc_html_e( 'Jeder Punkt wird mit einem Häkchen auf der Website angezeigt.', 'shyft-dashboard' ); ?></p>
+							<div class="shyft-offer-form__features" data-offer-features>
 								<?php
-								$icon_rows = $is_editing && ! empty( $edit_offer['icons'] ) ? $edit_offer['icons'] : array(
-									array( 'icon' => '', 'label' => '' ),
-								);
-								foreach ( $icon_rows as $icon_item ) :
+								$feature_rows = $is_editing && ! empty( $edit_offer['icons'] ) ? $edit_offer['icons'] : array( '' );
+								foreach ( $feature_rows as $feature_label ) :
+									$feature_label = is_string( $feature_label ) ? $feature_label : (string) ( is_array( $feature_label ) ? ( $feature_label['label'] ?? '' ) : '' );
 									?>
-									<div class="shyft-offer-form__icon-row">
-										<input type="text" name="offer_icons[]" class="shyft-form__input" placeholder="<?php esc_attr_e( 'Icon (Emoji, dashicons-yes-alt oder URL)', 'shyft-dashboard' ); ?>" value="<?php echo esc_attr( (string) ( $icon_item['icon'] ?? '' ) ); ?>">
-										<input type="text" name="offer_icon_labels[]" class="shyft-form__input" placeholder="<?php esc_attr_e( 'Text', 'shyft-dashboard' ); ?>" value="<?php echo esc_attr( (string) ( $icon_item['label'] ?? '' ) ); ?>">
-										<button type="button" class="shyft-offer-form__icon-remove" data-offer-remove-icon aria-label="<?php esc_attr_e( 'Entfernen', 'shyft-dashboard' ); ?>">&times;</button>
+									<div class="shyft-offer-form__feature-row">
+										<span class="shyft-offer-form__feature-check" aria-hidden="true"></span>
+										<input type="text" name="offer_feature_labels[]" class="shyft-form__input" placeholder="<?php esc_attr_e( 'Vorteil / Aufzählungspunkt', 'shyft-dashboard' ); ?>" value="<?php echo esc_attr( $feature_label ); ?>">
+										<button type="button" class="shyft-offer-form__icon-remove" data-offer-remove-feature aria-label="<?php esc_attr_e( 'Entfernen', 'shyft-dashboard' ); ?>">&times;</button>
 									</div>
 								<?php endforeach; ?>
 							</div>

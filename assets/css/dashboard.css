@@ -1573,19 +1573,48 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 	align-items: center;
 	justify-content: space-between;
 	gap: 12px;
-	margin-bottom: 12px;
+	margin-bottom: 8px;
 }
 
-.shyft-offer-form__icons {
+.shyft-form__hint {
+	margin: 0 0 12px;
+	color: var(--shyft-text-muted);
+	font-size: 0.9rem;
+	line-height: 1.45;
+}
+
+.shyft-offer-form__features {
 	display: grid;
 	gap: 10px;
 }
 
-.shyft-offer-form__icon-row {
+.shyft-offer-form__feature-row {
 	display: grid;
-	grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr) auto;
+	grid-template-columns: 28px minmax(0, 1fr) auto;
 	gap: 10px;
 	align-items: center;
+}
+
+.shyft-offer-form__feature-check {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	border-radius: 999px;
+	background: var(--shyft-accent-soft);
+	color: var(--shyft-accent);
+	flex-shrink: 0;
+}
+
+.shyft-offer-form__feature-check::before {
+	content: "";
+	display: block;
+	width: 10px;
+	height: 6px;
+	border-left: 2px solid currentColor;
+	border-bottom: 2px solid currentColor;
+	transform: rotate(-45deg) translateY(-1px);
 }
 
 .shyft-offer-form__icon-remove {
@@ -1607,7 +1636,7 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 
 @media (max-width: 767px) {
 	.shyft-form__grid,
-	.shyft-offer-form__icon-row {
+	.shyft-offer-form__feature-row {
 		grid-template-columns: 1fr;
 	}
 

@@ -442,20 +442,25 @@ final class Shyft_Dashboard_Routing {
 	public static function print_head_assets(): void {
 		self::ensure_dashboard_assets_enqueued();
 
+		$is_offers = 'angebote' === self::get_dashboard_view();
+
 		if ( wp_style_is( 'shyft-dashboard-fonts', 'registered' ) || wp_style_is( 'shyft-dashboard-fonts', 'enqueued' ) ) {
 			wp_print_styles( array( 'shyft-dashboard-fonts', 'shyft-dashboard' ) );
-			return;
+		} else {
+			$fonts_url = SHYFT_DASHBOARD_FONTS_URL;
+			$css_url   = SHYFT_DASHBOARD_URL . 'assets/css/dashboard.css';
+
+			printf(
+				'<link rel="stylesheet" href="%1$s" />' . "\n" . '<link rel="stylesheet" href="%2$s?ver=%3$s" />' . "\n",
+				esc_url( $fonts_url ),
+				esc_url( $css_url ),
+				esc_attr( SHYFT_DASHBOARD_VERSION )
+			);
 		}
 
-		$fonts_url = SHYFT_DASHBOARD_FONTS_URL;
-		$css_url   = SHYFT_DASHBOARD_URL . 'assets/css/dashboard.css';
-
-		printf(
-			'<link rel="stylesheet" href="%1$s" />' . "\n" . '<link rel="stylesheet" href="%2$s?ver=%3$s" />' . "\n",
-			esc_url( $fonts_url ),
-			esc_url( $css_url ),
-			esc_attr( SHYFT_DASHBOARD_VERSION )
-		);
+		if ( $is_offers ) {
+			wp_print_styles( array( 'dashicons', 'buttons', 'media-views' ) );
+		}
 	}
 
 	/**
@@ -660,11 +665,12 @@ final class Shyft_Dashboard_Routing {
 		);
 
 		if ( 'angebote' === self::get_dashboard_view() ) {
+			wp_enqueue_style( 'dashicons' );
 			wp_enqueue_media();
 			wp_enqueue_script(
 				'shyft-dashboard-offers',
 				SHYFT_DASHBOARD_URL . 'assets/js/dashboard-offers.js',
-				array( 'jquery' ),
+				array( 'jquery', 'media-upload' ),
 				SHYFT_DASHBOARD_VERSION,
 				true
 			);

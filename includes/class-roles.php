@@ -40,6 +40,7 @@ final class Shyft_Dashboard_Roles {
 			__( 'Kunde', 'shyft-dashboard' ),
 			array(
 				'read'                => true,
+				'upload_files'        => true,
 				'shyft_manage_offers' => true,
 			)
 		);
