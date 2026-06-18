@@ -786,7 +786,7 @@ final class Shyft_Dashboard_Settings {
 			spellcheck="false"
 		><?php echo esc_textarea( (string) $value ); ?></textarea>
 		<p class="description">
-			<?php esc_html_e( 'Optionales CSS für Shortcode und Elementor-Widget. Leer lassen = Kacheln im Google-Stil, Hauptbereich ohne Hintergrund/Rahmen. Wird nach dem Basis-Stylesheet geladen.', 'shyft-dashboard' ); ?>
+			<?php esc_html_e( 'Optionales CSS – wird nach dem SHYFT Premium-Standard geladen und überschreibt diesen. Leer lassen = nur Standard-Design.', 'shyft-dashboard' ); ?>
 		</p>
 		<details style="margin-top: 12px; max-width: 720px;">
 			<summary><?php esc_html_e( 'CSS-Vorlage zum Kopieren', 'shyft-dashboard' ); ?></summary>
@@ -808,44 +808,30 @@ final class Shyft_Dashboard_Settings {
 	 */
 	public static function get_google_reviews_css_template(): string {
 		return <<<'CSS'
-/* Hauptbereich: transparent – Header/CTA per Theme oder hier anpassen */
+/* Überschreibungen – Standard ist assets/css/google-reviews.css (SHYFT Premium 2026) */
+
+/* Beispiel: Akzentfarbe ändern */
+.shyft-reviews {
+	--accent: #FC573B;
+	--star: #fbbc04;
+}
+
+/* Beispiel: Kacheln flacher, ohne Glas-Effekt */
+/*
+.shyft-reviews__card {
+	background: #fff;
+	border-radius: 16px;
+}
+*/
+
+/* Beispiel: Wrapper transparent (nur Kacheln sichtbar) */
+/*
 .shyft-reviews {
 	background: transparent;
 	border: 0;
+	box-shadow: none;
 	padding: 0;
 }
-
-/* Kacheln wie Google Reviews (Screenshot-Vorlage) */
-.shyft-reviews {
-	--shyft-reviews-tile-bg: #fff;
-	--shyft-reviews-tile-border: #e8eaed;
-	--shyft-reviews-tile-accent-1: #34a853;
-	--shyft-reviews-tile-accent-2: #4285f4;
-	--shyft-reviews-tile-accent-3: #a142f4;
-	--shyft-reviews-star: #fbbc04;
-	--shyft-reviews-tile-radius: 8px;
-}
-
-.shyft-reviews__card {
-	background: var(--shyft-reviews-tile-bg);
-	border: 1px solid var(--shyft-reviews-tile-border);
-	border-radius: var(--shyft-reviews-tile-radius);
-	box-shadow: 0 1px 2px rgba(60, 64, 67, 0.08);
-}
-
-.shyft-reviews__card:nth-child(3n + 1) { border-top: 3px solid var(--shyft-reviews-tile-accent-1); }
-.shyft-reviews__card:nth-child(3n + 2) { border-top: 3px solid var(--shyft-reviews-tile-accent-2); }
-.shyft-reviews__card:nth-child(3n + 3) { border-top: 3px solid var(--shyft-reviews-tile-accent-3); }
-
-.shyft-reviews__stars,
-.shyft-reviews__stars-small {
-	color: var(--shyft-reviews-star);
-}
-
-/* Optional: Header & Button im Theme-Stil */
-/*
-.shyft-reviews__header { margin-bottom: 24px; }
-.shyft-reviews__cta { ... }
 */
 CSS;
 	}

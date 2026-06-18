@@ -1,10 +1,21 @@
 (function () {
 	'use strict';
 
-	function getVisibleColumns(root) {
-		var styles = window.getComputedStyle(root);
-		var columns = parseInt(styles.getPropertyValue('--shyft-reviews-columns'), 10);
-		return Number.isFinite(columns) && columns > 0 ? columns : 1;
+	function getVisibleColumns(track, slides) {
+		if (!track || !slides.length) {
+			return 1;
+		}
+
+		var trackWidth = track.clientWidth;
+		var slideWidth = slides[0].getBoundingClientRect().width;
+		var styles = window.getComputedStyle(track);
+		var gap = parseFloat(styles.columnGap || styles.gap || '0') || 0;
+
+		if (!trackWidth || !slideWidth) {
+			return 1;
+		}
+
+		return Math.max(1, Math.floor((trackWidth + gap) / (slideWidth + gap)));
 	}
 
 	function initWidget(root) {
@@ -24,7 +35,7 @@
 		}
 
 		function maxIndex() {
-			return Math.max(0, slides.length - getVisibleColumns(root));
+			return Math.max(0, slides.length - getVisibleColumns(track, slides));
 		}
 
 		function goTo(i) {

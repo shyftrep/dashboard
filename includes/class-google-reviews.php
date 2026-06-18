@@ -172,7 +172,7 @@ final class Shyft_Dashboard_Google_Reviews {
 		$url = add_query_arg(
 			array(
 				'place_id'     => $place_id,
-				'fields'       => 'rating,user_ratings_total,reviews,name,url',
+				'fields'       => 'rating,user_ratings_total,reviews,name,url,website,formatted_address,address_components,geometry',
 				'key'          => $api_key,
 				'language'     => self::get_api_language(),
 				'reviews_sort' => 'newest',
@@ -245,6 +245,13 @@ final class Shyft_Dashboard_Google_Reviews {
 			'total'            => (int) ( $result['user_ratings_total'] ?? 0 ),
 			'place_name'       => (string) ( $result['name'] ?? '' ),
 			'place_url'        => esc_url_raw( (string) ( $result['url'] ?? '' ) ),
+			'place_website'    => esc_url_raw( (string) ( $result['website'] ?? '' ) ),
+			'place_address'    => self::build_postal_address(
+				(string) ( $result['formatted_address'] ?? '' ),
+				(array) ( $result['address_components'] ?? array() )
+			),
+			'place_lat'        => self::extract_coordinate( $result, 'lat' ),
+			'place_lng'        => self::extract_coordinate( $result, 'lng' ),
 			'write_review_url' => self::get_write_review_url(),
 			'reviews'          => $reviews,
 			'fetched_at'       => current_time( 'mysql' ),
@@ -262,11 +269,99 @@ final class Shyft_Dashboard_Google_Reviews {
 			'total'            => 0,
 			'place_name'       => '',
 			'place_url'        => '',
+			'place_website'    => '',
+			'place_address'    => array(),
+			'place_lat'        => null,
+			'place_lng'        => null,
 			'write_review_url' => self::get_write_review_url(),
 			'reviews'          => array(),
 			'fetched_at'       => '',
 			'error'            => $error,
 		);
+	}
+
+	/**
+	 * @param array<int, array<string, mixed>> $components Google address_components.
+	 * @return array<string, string>
+	 */
+	private static function build_postal_address( string $formatted_address, array $components ): array {
+		$parts = array(
+			'street_number' => '',
+			'route'         => '',
+			'locality'      => '',
+			'postal_code'   => '',
+			'country'       => '',
+		);
+
+		foreach ( $components as $component ) {
+			if ( ! is_array( $component ) ) {
+				continue;
+			}
+
+			$types = (array) ( $component['types'] ?? array() );
+			$long  = (string) ( $component['long_name'] ?? '' );
+			$short = (string) ( $component['short_name'] ?? '' );
+
+			if ( in_array( 'street_number', $types, true ) ) {
+				$parts['street_number'] = $long;
+			}
+
+			if ( in_array( 'route', $types, true ) ) {
+				$parts['route'] = $long;
+			}
+
+			if ( in_array( 'locality', $types, true ) ) {
+				$parts['locality'] = $long;
+			} elseif ( in_array( 'postal_town', $types, true ) && '' === $parts['locality'] ) {
+				$parts['locality'] = $long;
+			}
+
+			if ( in_array( 'postal_code', $types, true ) ) {
+				$parts['postal_code'] = $long;
+			}
+
+			if ( in_array( 'country', $types, true ) ) {
+				$parts['country'] = $short;
+			}
+		}
+
+		$street = trim( $parts['street_number'] . ' ' . $parts['route'] );
+		$address = array(
+			'@type' => 'PostalAddress',
+		);
+
+		if ( '' !== $street ) {
+			$address['streetAddress'] = $street;
+		} elseif ( '' !== $formatted_address ) {
+			$address['streetAddress'] = $formatted_address;
+		}
+
+		if ( '' !== $parts['locality'] ) {
+			$address['addressLocality'] = $parts['locality'];
+		}
+
+		if ( '' !== $parts['postal_code'] ) {
+			$address['postalCode'] = $parts['postal_code'];
+		}
+
+		if ( '' !== $parts['country'] ) {
+			$address['addressCountry'] = $parts['country'];
+		}
+
+		return count( $address ) > 1 ? $address : array();
+	}
+
+	/**
+	 * @param array<string, mixed> $result Place Details API result.
+	 */
+	private static function extract_coordinate( array $result, string $axis ): ?float {
+		$location = $result['geometry']['location'] ?? null;
+
+		if ( ! is_array( $location ) || ! isset( $location[ $axis ] ) ) {
+			return null;
+		}
+
+		return is_numeric( $location[ $axis ] ) ? (float) $location[ $axis ] : null;
 	}
 
 	/**

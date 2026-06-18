@@ -197,6 +197,18 @@ final class Shyft_Dashboard_Google_Reviews_Display {
 	 * @param list<array<string, mixed>>  $reviews Review rows.
 	 */
 	private static function print_schema_markup( array $data, array $reviews, string $place_name ): void {
+		$place_name   = $place_name ?: get_bloginfo( 'name' );
+		$place_url    = esc_url_raw( (string) ( $data['place_url'] ?? '' ) );
+		$place_website = esc_url_raw( (string) ( $data['place_website'] ?? '' ) );
+		$canonical_url = $place_website ?: $place_url ?: home_url( '/' );
+		$item_reviewed = array_filter(
+			array(
+				'@type' => 'LocalBusiness',
+				'name'  => $place_name,
+				'url'   => $canonical_url,
+			)
+		);
+
 		$schema_reviews = array();
 
 		foreach ( $reviews as $review ) {
@@ -205,17 +217,18 @@ final class Shyft_Dashboard_Google_Reviews_Display {
 			}
 
 			$item = array(
-				'@type'         => 'Review',
-				'reviewRating'  => array(
+				'@type'        => 'Review',
+				'itemReviewed' => $item_reviewed,
+				'reviewRating' => array(
 					'@type'       => 'Rating',
 					'ratingValue' => (string) (int) ( $review['rating'] ?? 0 ),
 					'bestRating'  => '5',
 				),
-				'author'        => array(
+				'author'       => array(
 					'@type' => 'Person',
 					'name'  => (string) ( $review['author'] ?? __( 'Google-Nutzer', 'shyft-dashboard' ) ),
 				),
-				'reviewBody'    => (string) $review['text'],
+				'reviewBody'   => (string) $review['text'],
 			);
 
 			if ( ! empty( $review['time'] ) ) {
@@ -228,8 +241,8 @@ final class Shyft_Dashboard_Google_Reviews_Display {
 		$schema = array(
 			'@context' => 'https://schema.org',
 			'@type'    => 'LocalBusiness',
-			'name'     => $place_name ?: get_bloginfo( 'name' ),
-			'url'      => home_url( '/' ),
+			'name'     => $place_name,
+			'url'      => $canonical_url,
 			'aggregateRating' => array(
 				'@type'       => 'AggregateRating',
 				'ratingValue' => (string) ( $data['rating'] ?? 0 ),
@@ -238,6 +251,37 @@ final class Shyft_Dashboard_Google_Reviews_Display {
 				'worstRating' => '1',
 			),
 		);
+
+		$place_address = $data['place_address'] ?? array();
+
+		if ( is_array( $place_address ) && ! empty( $place_address ) ) {
+			$schema['address'] = $place_address;
+		}
+
+		$place_lat = $data['place_lat'] ?? null;
+		$place_lng = $data['place_lng'] ?? null;
+
+		if ( is_numeric( $place_lat ) && is_numeric( $place_lng ) ) {
+			$schema['geo'] = array(
+				'@type'     => 'GeoCoordinates',
+				'latitude'  => (float) $place_lat,
+				'longitude' => (float) $place_lng,
+			);
+		}
+
+		$same_as = array();
+
+		foreach ( array( $place_url, $place_website ) as $profile_url ) {
+			if ( '' !== $profile_url && $profile_url !== $canonical_url ) {
+				$same_as[] = $profile_url;
+			}
+		}
+
+		$same_as = array_values( array_unique( $same_as ) );
+
+		if ( ! empty( $same_as ) ) {
+			$schema['sameAs'] = $same_as;
+		}
 
 		if ( ! empty( $schema_reviews ) ) {
 			$schema['review'] = $schema_reviews;
