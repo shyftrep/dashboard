@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'SHYFT_DASHBOARD_VERSION', '2.3.17' );
+define( 'SHYFT_DASHBOARD_VERSION', '2.3.18' );
 define( 'SHYFT_DASHBOARD_FONTS_URL', 'https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap' );
 define( 'SHYFT_DASHBOARD_SLUG', 'shyft-dashboard' );
 define( 'SHYFT_DASHBOARD_FILE', __FILE__ );
