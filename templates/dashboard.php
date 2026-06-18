@@ -23,6 +23,8 @@
  * @var array{message: string, count: int, anchor: string}|null $tasks_notice
  * @var array{open: list<array<string, mixed>>, done: list<array<string, mixed>>, can_manage: bool} $tasks_tracker
  * @var array<string, mixed> $google_reviews
+ * @var int $google_reviews_new_count
+ * @var string $google_reviews_manage_url
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -52,6 +54,8 @@ $tasks_tracker         = $tasks_tracker ?? array(
 	'can_manage' => false,
 );
 $google_reviews        = $google_reviews ?? Shyft_Dashboard_Google_Reviews::get_stored_data();
+$google_reviews_new_count = $google_reviews_new_count ?? 0;
+$google_reviews_manage_url = $google_reviews_manage_url ?? '';
 ?>
 <!DOCTYPE html>
 <html <?php language_attributes(); ?> data-theme="light">
@@ -286,13 +290,26 @@ $google_reviews        = $google_reviews ?? Shyft_Dashboard_Google_Reviews::get_
 					<p class="shyft-card__label"><?php esc_html_e( 'Google-Bewertung', 'shyft-dashboard' ); ?></p>
 					<p class="shyft-card__value"><?php echo esc_html( number_format_i18n( (float) ( $google_reviews['rating'] ?? 0 ), 1 ) ); ?></p>
 					<p class="shyft-card__link">
-						<?php
-						printf(
-							/* translators: %s: number of reviews */
-							esc_html( _n( '%s Bewertung', '%s Bewertungen', (int) ( $google_reviews['total'] ?? 0 ), 'shyft-dashboard' ) ),
-							esc_html( number_format_i18n( (int) ( $google_reviews['total'] ?? 0 ) ) )
-						);
-						?>
+						<a href="#shyft-google-reviews">
+							<?php
+							printf(
+								/* translators: %s: number of reviews */
+								esc_html( _n( '%s Bewertung', '%s Bewertungen', (int) ( $google_reviews['total'] ?? 0 ), 'shyft-dashboard' ) ),
+								esc_html( number_format_i18n( (int) ( $google_reviews['total'] ?? 0 ) ) )
+							);
+							?>
+						</a>
+						<?php if ( $google_reviews_new_count > 0 ) : ?>
+							<span class="shyft-metric-badge">
+								<?php
+								printf(
+									/* translators: %d: number of new reviews */
+									esc_html( _n( '%d neu', '%d neu', $google_reviews_new_count, 'shyft-dashboard' ) ),
+									(int) $google_reviews_new_count
+								);
+								?>
+							</span>
+						<?php endif; ?>
 					</p>
 				</article>
 			<?php endif; ?>
@@ -403,6 +420,101 @@ $google_reviews        = $google_reviews ?? Shyft_Dashboard_Google_Reviews::get_
 			</article>
 			</div>
 		</section>
+
+		<?php if ( ! empty( $google_reviews['available'] ) && ! empty( $google_reviews['reviews'] ) ) : ?>
+			<section class="shyft-dashboard__section" id="shyft-google-reviews" aria-label="<?php esc_attr_e( 'Google Bewertungen', 'shyft-dashboard' ); ?>">
+				<header class="shyft-section-header shyft-section-header--split">
+					<div>
+						<p class="shyft-section-label"><?php esc_html_e( 'Reputation', 'shyft-dashboard' ); ?></p>
+						<h2 class="shyft-section-title">
+							<?php esc_html_e( 'Google Bewertungen', 'shyft-dashboard' ); ?>
+							<?php if ( $google_reviews_new_count > 0 ) : ?>
+								<span class="shyft-section-badge">
+									<?php
+									printf(
+										/* translators: %d: number of new reviews */
+										esc_html( _n( '%d neue Bewertung', '%d neue Bewertungen', $google_reviews_new_count, 'shyft-dashboard' ) ),
+										(int) $google_reviews_new_count
+									);
+									?>
+								</span>
+							<?php endif; ?>
+						</h2>
+					</div>
+					<?php if ( '' !== $google_reviews_manage_url ) : ?>
+						<a class="shyft-button shyft-button--secondary" href="<?php echo esc_url( $google_reviews_manage_url ); ?>" target="_blank" rel="noopener noreferrer">
+							<?php esc_html_e( 'In Google antworten', 'shyft-dashboard' ); ?>
+						</a>
+					<?php endif; ?>
+				</header>
+
+				<article class="shyft-card shyft-card--panel">
+					<ul class="shyft-reviews-dash">
+						<?php foreach ( (array) $google_reviews['reviews'] as $review ) : ?>
+							<?php
+							if ( ! is_array( $review ) ) {
+								continue;
+							}
+
+							$is_new      = Shyft_Dashboard_Google_Reviews::is_review_new( $review );
+							$author      = (string) ( $review['author'] ?? '' );
+							$rating      = (int) ( $review['rating'] ?? 0 );
+							$text        = (string) ( $review['text'] ?? '' );
+							$relative    = (string) ( $review['relative_time'] ?? '' );
+							$photo       = (string) ( $review['photo'] ?? '' );
+							$review_time = (int) ( $review['time'] ?? 0 );
+							$initial     = Shyft_Dashboard_Google_Reviews::get_author_initial( $author );
+							?>
+							<li class="shyft-reviews-dash__item<?php echo $is_new ? ' is-new' : ''; ?>">
+								<div class="shyft-reviews-dash__main">
+									<div class="shyft-reviews-dash__head">
+										<?php if ( '' !== $photo ) : ?>
+											<img class="shyft-reviews-dash__avatar" src="<?php echo esc_url( $photo ); ?>" alt="" width="40" height="40" loading="lazy" decoding="async">
+										<?php else : ?>
+											<span class="shyft-reviews-dash__avatar shyft-reviews-dash__avatar--placeholder" aria-hidden="true"><?php echo esc_html( $initial ); ?></span>
+										<?php endif; ?>
+										<div class="shyft-reviews-dash__meta">
+											<p class="shyft-reviews-dash__author"><?php echo esc_html( $author ); ?></p>
+											<p class="shyft-reviews-dash__stars" aria-hidden="true"><?php echo esc_html( Shyft_Dashboard_Google_Reviews::render_stars( $rating ) ); ?></p>
+										</div>
+										<?php if ( $is_new ) : ?>
+											<span class="shyft-reviews-dash__badge"><?php esc_html_e( 'Neu', 'shyft-dashboard' ); ?></span>
+										<?php endif; ?>
+									</div>
+									<?php if ( '' !== $text ) : ?>
+										<p class="shyft-reviews-dash__text"><?php echo esc_html( wp_trim_words( $text, 28, '…' ) ); ?></p>
+									<?php endif; ?>
+								</div>
+								<div class="shyft-reviews-dash__actions">
+									<?php if ( '' !== $relative ) : ?>
+										<time class="shyft-reviews-dash__time" <?php echo $review_time > 0 ? 'datetime="' . esc_attr( gmdate( 'c', $review_time ) ) . '"' : ''; ?>>
+											<?php echo esc_html( $relative ); ?>
+										</time>
+									<?php endif; ?>
+									<?php if ( '' !== $google_reviews_manage_url ) : ?>
+										<a class="shyft-reviews-dash__reply" href="<?php echo esc_url( $google_reviews_manage_url ); ?>" target="_blank" rel="noopener noreferrer">
+											<?php esc_html_e( 'Jetzt antworten', 'shyft-dashboard' ); ?>
+										</a>
+									<?php endif; ?>
+								</div>
+							</li>
+						<?php endforeach; ?>
+					</ul>
+					<?php if ( ! empty( $google_reviews['fetched_at'] ) ) : ?>
+						<p class="shyft-reviews-dash__sync">
+							<?php
+							printf(
+								/* translators: %s: datetime */
+								esc_html__( 'Zuletzt synchronisiert: %s', 'shyft-dashboard' ),
+								esc_html( (string) $google_reviews['fetched_at'] )
+							);
+							?>
+						</p>
+					<?php endif; ?>
+				</article>
+			</section>
+			<?php Shyft_Dashboard_Google_Reviews::mark_reviews_seen( $google_reviews ); ?>
+		<?php endif; ?>
 
 		<section class="shyft-dashboard__section shyft-dashboard__request" aria-label="<?php esc_attr_e( 'Änderungswunsch', 'shyft-dashboard' ); ?>">
 			<article class="shyft-card shyft-card--panel">

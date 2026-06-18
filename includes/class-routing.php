@@ -482,6 +482,13 @@ final class Shyft_Dashboard_Routing {
 			'can_manage' => false,
 		);
 		$google_reviews        = Shyft_Dashboard_Google_Reviews::get_stored_data();
+		$google_reviews_new_count = 0;
+		$google_reviews_manage_url = '';
+
+		if ( ! empty( $google_reviews['available'] ) ) {
+			$google_reviews_new_count  = Shyft_Dashboard_Google_Reviews::count_new_reviews( $google_reviews );
+			$google_reviews_manage_url = Shyft_Dashboard_Google_Reviews::get_manage_reviews_url();
+		}
 
 		try {
 			$leads           = new Shyft_Dashboard_Leads();

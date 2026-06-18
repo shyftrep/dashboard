@@ -17,6 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 final class Shyft_Dashboard_Google_Reviews {
 
 	public const OPTION_DATA     = 'shyft_dashboard_google_reviews_data';
+	public const OPTION_LAST_SEEN = 'shyft_dashboard_google_reviews_last_seen_at';
 	public const CRON_HOOK       = 'shyft_dashboard_sync_google_reviews';
 	public const MAX_STORED_REVIEWS = 10;
 
@@ -379,5 +380,139 @@ final class Shyft_Dashboard_Google_Reviews {
 	 */
 	public static function clear_data(): void {
 		delete_option( self::OPTION_DATA );
+		delete_option( self::OPTION_LAST_SEEN );
+	}
+
+	/**
+	 * Unix timestamp of the newest review seen in the dashboard.
+	 */
+	public static function get_last_seen_at(): int {
+		return max( 0, (int) get_option( self::OPTION_LAST_SEEN, 0 ) );
+	}
+
+	/**
+	 * Reviews that arrived after the last dashboard visit.
+	 *
+	 * @param array<string, mixed>|null $data Stored payload.
+	 * @return list<array<string, mixed>>
+	 */
+	public static function get_new_reviews( ?array $data = null ): array {
+		$data      = $data ?? self::get_stored_data();
+		$last_seen = self::get_last_seen_at();
+
+		if ( $last_seen <= 0 || empty( $data['available'] ) ) {
+			return array();
+		}
+
+		$new_reviews = array();
+
+		foreach ( (array) ( $data['reviews'] ?? array() ) as $review ) {
+			if ( ! is_array( $review ) ) {
+				continue;
+			}
+
+			$time = (int) ( $review['time'] ?? 0 );
+
+			if ( $time > $last_seen ) {
+				$new_reviews[] = $review;
+			}
+		}
+
+		return $new_reviews;
+	}
+
+	/**
+	 * @param array<string, mixed>|null $data Stored payload.
+	 */
+	public static function count_new_reviews( ?array $data = null ): int {
+		return count( self::get_new_reviews( $data ) );
+	}
+
+	/**
+	 * Whether a single review should show the "new" badge.
+	 *
+	 * @param array<string, mixed> $review Review row.
+	 */
+	public static function is_review_new( array $review ): bool {
+		$time = (int) ( $review['time'] ?? 0 );
+
+		if ( $time <= 0 ) {
+			return false;
+		}
+
+		$last_seen = self::get_last_seen_at();
+
+		if ( $last_seen <= 0 ) {
+			return false;
+		}
+
+		return $time > $last_seen;
+	}
+
+	/**
+	 * Marks currently stored reviews as seen in the dashboard.
+	 *
+	 * @param array<string, mixed>|null $data Stored payload.
+	 */
+	public static function mark_reviews_seen( ?array $data = null ): void {
+		$data    = $data ?? self::get_stored_data();
+		$latest  = 0;
+
+		foreach ( (array) ( $data['reviews'] ?? array() ) as $review ) {
+			if ( ! is_array( $review ) ) {
+				continue;
+			}
+
+			$latest = max( $latest, (int) ( $review['time'] ?? 0 ) );
+		}
+
+		if ( $latest > 0 ) {
+			update_option( self::OPTION_LAST_SEEN, $latest, false );
+
+			return;
+		}
+
+		if ( self::get_last_seen_at() <= 0 ) {
+			update_option( self::OPTION_LAST_SEEN, time(), false );
+		}
+	}
+
+	/**
+	 * URL to manage and reply to reviews in Google Business Profile.
+	 */
+	public static function get_manage_reviews_url(): string {
+		$data = self::get_stored_data();
+
+		if ( ! empty( $data['place_url'] ) ) {
+			return (string) $data['place_url'];
+		}
+
+		return 'https://business.google.com/reviews';
+	}
+
+	/**
+	 * Renders a simple 5-star string for the dashboard.
+	 */
+	public static function render_stars( int $rating ): string {
+		$rating = max( 0, min( 5, $rating ) );
+
+		return str_repeat( '★', $rating ) . str_repeat( '☆', 5 - $rating );
+	}
+
+	/**
+	 * First letter for avatar placeholders.
+	 */
+	public static function get_author_initial( string $author ): string {
+		$author = trim( $author );
+
+		if ( '' === $author ) {
+			return '?';
+		}
+
+		if ( function_exists( 'mb_substr' ) ) {
+			return mb_strtoupper( mb_substr( $author, 0, 1 ) );
+		}
+
+		return strtoupper( substr( $author, 0, 1 ) );
 	}
 }
