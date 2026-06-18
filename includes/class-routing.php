@@ -442,8 +442,6 @@ final class Shyft_Dashboard_Routing {
 	public static function print_head_assets(): void {
 		self::ensure_dashboard_assets_enqueued();
 
-		$is_offers = 'angebote' === self::get_dashboard_view();
-
 		if ( wp_style_is( 'shyft-dashboard-fonts', 'registered' ) || wp_style_is( 'shyft-dashboard-fonts', 'enqueued' ) ) {
 			wp_print_styles( array( 'shyft-dashboard-fonts', 'shyft-dashboard' ) );
 		} else {
@@ -457,10 +455,6 @@ final class Shyft_Dashboard_Routing {
 				esc_attr( SHYFT_DASHBOARD_VERSION )
 			);
 		}
-
-		if ( $is_offers ) {
-			wp_print_styles( array( 'dashicons', 'buttons', 'media-views' ) );
-		}
 	}
 
 	/**
@@ -470,7 +464,9 @@ final class Shyft_Dashboard_Routing {
 		self::ensure_dashboard_assets_enqueued();
 
 		if ( 'angebote' === self::get_dashboard_view() ) {
-			wp_print_footer_scripts();
+			if ( wp_script_is( 'shyft-dashboard-offers', 'registered' ) || wp_script_is( 'shyft-dashboard-offers', 'enqueued' ) ) {
+				wp_print_footer_scripts( array( 'shyft-dashboard-offers' ) );
+			}
 			return;
 		}
 
@@ -665,12 +661,10 @@ final class Shyft_Dashboard_Routing {
 		);
 
 		if ( 'angebote' === self::get_dashboard_view() ) {
-			wp_enqueue_style( 'dashicons' );
-			wp_enqueue_media();
 			wp_enqueue_script(
 				'shyft-dashboard-offers',
 				SHYFT_DASHBOARD_URL . 'assets/js/dashboard-offers.js',
-				array( 'jquery', 'media-upload' ),
+				array(),
 				SHYFT_DASHBOARD_VERSION,
 				true
 			);

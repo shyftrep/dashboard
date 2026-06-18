@@ -85,8 +85,22 @@ final class Shyft_Dashboard_Offers {
 				'show_ui'             => current_user_can( 'manage_options' ),
 				'show_in_menu'        => current_user_can( 'manage_options' ),
 				'menu_icon'           => 'dashicons-megaphone',
-				'capability_type'     => 'post',
+				'capability_type'     => array( 'shyft_angebot', 'shyft_angebots' ),
 				'map_meta_cap'        => true,
+				'capabilities'        => array(
+					'edit_post'              => self::CAP_MANAGE,
+					'read_post'              => 'read',
+					'delete_post'            => self::CAP_MANAGE,
+					'edit_posts'             => self::CAP_MANAGE,
+					'edit_others_posts'      => self::CAP_MANAGE,
+					'publish_posts'          => self::CAP_MANAGE,
+					'read_private_posts'     => self::CAP_MANAGE,
+					'create_posts'           => self::CAP_MANAGE,
+					'delete_posts'           => self::CAP_MANAGE,
+					'delete_private_posts'   => self::CAP_MANAGE,
+					'delete_published_posts' => self::CAP_MANAGE,
+					'delete_others_posts'    => self::CAP_MANAGE,
+				),
 				'supports'            => array( 'title', 'page-attributes' ),
 				'has_archive'         => false,
 				'exclude_from_search' => true,
@@ -133,15 +147,7 @@ final class Shyft_Dashboard_Offers {
 	 * @return list<array<string, mixed>>
 	 */
 	public static function get_all_offers(): array {
-		$posts = get_posts(
-			array(
-				'post_type'      => self::POST_TYPE,
-				'post_status'    => 'publish',
-				'posts_per_page' => -1,
-				'orderby'        => 'menu_order',
-				'order'          => 'ASC',
-			)
-		);
+		$posts = get_posts( self::query_args() );
 
 		return array_map( array( self::class, 'format_offer' ), $posts );
 	}
@@ -164,23 +170,38 @@ final class Shyft_Dashboard_Offers {
 	 */
 	private static function get_active_standard_offers(): array {
 		$posts = get_posts(
-			array(
-				'post_type'      => self::POST_TYPE,
-				'post_status'    => 'publish',
-				'posts_per_page' => -1,
-				'orderby'        => 'menu_order',
-				'order'          => 'ASC',
-				'meta_query'     => array(
-					'relation' => 'AND',
-					array(
-						'key'   => self::META_TYPE,
-						'value' => self::TYPE_STANDARD,
+			self::query_args(
+				array(
+					'meta_query' => array(
+						'relation' => 'AND',
+						array(
+							'relation' => 'OR',
+							array(
+								'key'   => self::META_TYPE,
+								'value' => self::TYPE_STANDARD,
+							),
+							array(
+								'key'     => self::META_TYPE,
+								'compare' => 'NOT EXISTS',
+							),
+							array(
+								'key'   => self::META_TYPE,
+								'value' => '',
+							),
+						),
+						array(
+							'relation' => 'OR',
+							array(
+								'key'   => self::META_ACTIVE,
+								'value' => '1',
+							),
+							array(
+								'key'     => self::META_ACTIVE,
+								'compare' => 'NOT EXISTS',
+							),
+						),
 					),
-					array(
-						'key'   => self::META_ACTIVE,
-						'value' => '1',
-					),
-				),
+				)
 			)
 		);
 
@@ -193,18 +214,15 @@ final class Shyft_Dashboard_Offers {
 	private static function get_active_timed_offers(): array {
 		$now   = time();
 		$posts = get_posts(
-			array(
-				'post_type'      => self::POST_TYPE,
-				'post_status'    => 'publish',
-				'posts_per_page' => -1,
-				'orderby'        => 'menu_order',
-				'order'          => 'ASC',
-				'meta_query'     => array(
-					array(
-						'key'   => self::META_TYPE,
-						'value' => self::TYPE_TIMED,
+			self::query_args(
+				array(
+					'meta_query' => array(
+						array(
+							'key'   => self::META_TYPE,
+							'value' => self::TYPE_TIMED,
+						),
 					),
-				),
+				)
 			)
 		);
 
@@ -220,6 +238,26 @@ final class Shyft_Dashboard_Offers {
 		}
 
 		return $active;
+	}
+
+	/**
+	 * Base query for offer posts (bypasses private CPT permission checks on the frontend).
+	 *
+	 * @param array<string, mixed> $args Additional WP_Query arguments.
+	 * @return array<string, mixed>
+	 */
+	private static function query_args( array $args = array() ): array {
+		return array_merge(
+			array(
+				'post_type'      => self::POST_TYPE,
+				'post_status'    => 'publish',
+				'posts_per_page' => -1,
+				'orderby'        => 'menu_order',
+				'order'          => 'ASC',
+				'perm'           => '',
+			),
+			$args
+		);
 	}
 
 	/**
@@ -335,11 +373,22 @@ final class Shyft_Dashboard_Offers {
 
 		$offer_id = (int) $result;
 
+		$image_id = isset( $_POST['offer_image_id'] ) ? absint( wp_unslash( (string) $_POST['offer_image_id'] ) ) : 0;
+		$uploaded = self::handle_image_upload( $offer_id );
+
+		if ( $uploaded > 0 ) {
+			$image_id = $uploaded;
+		}
+
 		update_post_meta( $offer_id, self::META_TYPE, $type );
 		update_post_meta( $offer_id, self::META_HEADLINE, $headline );
 		update_post_meta( $offer_id, self::META_TEXT, $text );
-		update_post_meta( $offer_id, self::META_ACTIVE, isset( $_POST['offer_active'] ) ? '1' : '0' );
-		update_post_meta( $offer_id, self::META_IMAGE_ID, isset( $_POST['offer_image_id'] ) ? absint( wp_unslash( (string) $_POST['offer_image_id'] ) ) : 0 );
+		update_post_meta(
+			$offer_id,
+			self::META_ACTIVE,
+			self::TYPE_TIMED === $type || isset( $_POST['offer_active'] ) ? '1' : '0'
+		);
+		update_post_meta( $offer_id, self::META_IMAGE_ID, $image_id );
 		update_post_meta( $offer_id, self::META_BUTTON_LABEL, isset( $_POST['offer_button_label'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['offer_button_label'] ) ) : '' );
 		update_post_meta( $offer_id, self::META_BUTTON_URL, isset( $_POST['offer_button_url'] ) ? esc_url_raw( wp_unslash( (string) $_POST['offer_button_url'] ) ) : '' );
 		update_post_meta( $offer_id, self::META_ICONS, wp_json_encode( self::sanitize_feature_labels_from_request() ) );
@@ -411,9 +460,86 @@ final class Shyft_Dashboard_Offers {
 			return 0;
 		}
 
-		$timestamp = strtotime( $value );
+		$datetime = \DateTimeImmutable::createFromFormat( 'Y-m-d\TH:i', $value, wp_timezone() );
 
-		return false === $timestamp ? 0 : $timestamp;
+		if ( false === $datetime ) {
+			return 0;
+		}
+
+		return $datetime->getTimestamp();
+	}
+
+	/**
+	 * Stores an uploaded offer image in the media library.
+	 */
+	private static function handle_image_upload( int $offer_id ): int {
+		if ( empty( $_FILES['offer_image_file']['name'] ) || ! is_array( $_FILES['offer_image_file'] ) ) {
+			return 0;
+		}
+
+		if ( ! current_user_can( 'upload_files' ) ) {
+			self::set_flash( 'error', __( 'Keine Berechtigung zum Hochladen von Bildern.', 'shyft-dashboard' ) );
+
+			return 0;
+		}
+
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Handled by wp_handle_upload().
+		$file = $_FILES['offer_image_file'];
+
+		if ( ! empty( $file['error'] ) && UPLOAD_ERR_NO_FILE === (int) $file['error'] ) {
+			return 0;
+		}
+
+		if ( ! empty( $file['error'] ) ) {
+			self::set_flash( 'error', __( 'Bild konnte nicht hochgeladen werden.', 'shyft-dashboard' ) );
+
+			return 0;
+		}
+
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+		require_once ABSPATH . 'wp-admin/includes/image.php';
+		require_once ABSPATH . 'wp-admin/includes/media.php';
+
+		$upload = wp_handle_upload(
+			$file,
+			array(
+				'test_form' => false,
+				'mimes'     => array(
+					'jpg|jpeg|jpe' => 'image/jpeg',
+					'gif'          => 'image/gif',
+					'png'          => 'image/png',
+					'webp'         => 'image/webp',
+				),
+			)
+		);
+
+		if ( isset( $upload['error'] ) ) {
+			self::set_flash( 'error', (string) $upload['error'] );
+
+			return 0;
+		}
+
+		$attachment_id = wp_insert_attachment(
+			array(
+				'post_mime_type' => (string) ( $upload['type'] ?? '' ),
+				'post_title'     => sanitize_file_name( pathinfo( (string) $file['name'], PATHINFO_FILENAME ) ),
+				'post_content'   => '',
+				'post_status'    => 'inherit',
+				'post_parent'    => $offer_id,
+			),
+			(string) ( $upload['file'] ?? '' )
+		);
+
+		if ( is_wp_error( $attachment_id ) ) {
+			self::set_flash( 'error', $attachment_id->get_error_message() );
+
+			return 0;
+		}
+
+		$metadata = wp_generate_attachment_metadata( (int) $attachment_id, (string) $upload['file'] );
+		wp_update_attachment_metadata( (int) $attachment_id, $metadata );
+
+		return (int) $attachment_id;
 	}
 
 	public static function format_datetime_local( int $timestamp ): string {

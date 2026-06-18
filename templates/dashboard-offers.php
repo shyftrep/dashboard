@@ -154,7 +154,7 @@ $is_editing        = is_array( $edit_offer );
 						<?php echo $is_editing ? esc_html__( 'Angebot bearbeiten', 'shyft-dashboard' ) : esc_html__( 'Neues Angebot', 'shyft-dashboard' ); ?>
 					</h2>
 
-					<form class="shyft-form shyft-offer-form" method="post" action="<?php echo esc_url( $form_action ); ?>" data-shyft-offer-form>
+					<form class="shyft-form shyft-offer-form" method="post" action="<?php echo esc_url( $form_action ); ?>" enctype="multipart/form-data" data-shyft-offer-form>
 						<input type="hidden" name="action" value="<?php echo esc_attr( Shyft_Dashboard_Offers::ACTION_SAVE ); ?>">
 						<?php wp_nonce_field( Shyft_Dashboard_Offers::NONCE_SAVE ); ?>
 						<input type="hidden" name="offer_id" value="<?php echo esc_attr( $is_editing ? (string) (int) ( $edit_offer['id'] ?? 0 ) : '0' ); ?>">
@@ -202,7 +202,10 @@ $is_editing        = is_array( $edit_offer );
 								<?php endif; ?>
 							</div>
 							<div class="shyft-offer-form__image-actions">
-								<button type="button" class="shyft-button shyft-button--secondary" data-offer-pick-image><?php esc_html_e( 'Bild wählen', 'shyft-dashboard' ); ?></button>
+								<label class="shyft-button shyft-button--secondary shyft-offer-form__file-label">
+									<?php esc_html_e( 'Bild hochladen', 'shyft-dashboard' ); ?>
+									<input type="file" name="offer_image_file" class="shyft-offer-form__file-input" accept="image/jpeg,image/png,image/webp,image/gif" data-offer-image-file>
+								</label>
 								<button type="button" class="shyft-button shyft-button--secondary" data-offer-remove-image><?php esc_html_e( 'Bild entfernen', 'shyft-dashboard' ); ?></button>
 							</div>
 						</div>

@@ -13,7 +13,7 @@
 		var addFeatureButton = root.querySelector('[data-offer-add-feature]');
 		var imageInput = root.querySelector('[data-offer-image-id]');
 		var imagePreview = root.querySelector('[data-offer-image-preview]');
-		var pickImageButton = root.querySelector('[data-offer-pick-image]');
+		var imageFileInput = root.querySelector('[data-offer-image-file]');
 		var removeImageButton = root.querySelector('[data-offer-remove-image]');
 
 		function toggleTypeFields() {
@@ -38,6 +38,18 @@
 				'">' +
 				'<button type="button" class="shyft-offer-form__icon-remove" data-offer-remove-feature aria-label="Entfernen">&times;</button>';
 			return row;
+		}
+
+		function clearImageSelection() {
+			if (imageInput) {
+				imageInput.value = '0';
+			}
+			if (imageFileInput) {
+				imageFileInput.value = '';
+			}
+			if (imagePreview) {
+				imagePreview.innerHTML = '';
+			}
 		}
 
 		if (typeField) {
@@ -65,42 +77,30 @@
 			});
 		}
 
-		if (pickImageButton && imageInput) {
-			pickImageButton.addEventListener('click', function (event) {
-				event.preventDefault();
+		if (imageFileInput && imagePreview) {
+			imageFileInput.addEventListener('change', function () {
+				var file = imageFileInput.files && imageFileInput.files[0];
 
-				if (!window.wp || !window.wp.media) {
+				if (!file) {
 					return;
 				}
 
-				var frame = window.wp.media({
-					title: 'Angebotsbild wählen',
-					button: { text: 'Übernehmen' },
-					multiple: false,
-					library: { type: 'image' },
-				});
+				if (imageInput) {
+					imageInput.value = '0';
+				}
 
-				frame.on('select', function () {
-					var attachment = frame.state().get('selection').first().toJSON();
-					imageInput.value = String(attachment.id || '');
-					if (imagePreview) {
-						imagePreview.innerHTML = attachment.url
-							? '<img src="' + attachment.url + '" alt="">'
-							: '';
-					}
-				});
-
-				frame.open();
+				var reader = new FileReader();
+				reader.onload = function () {
+					imagePreview.innerHTML = '<img src="' + reader.result + '" alt="">';
+				};
+				reader.readAsDataURL(file);
 			});
 		}
 
-		if (removeImageButton && imageInput) {
+		if (removeImageButton) {
 			removeImageButton.addEventListener('click', function (event) {
 				event.preventDefault();
-				imageInput.value = '0';
-				if (imagePreview) {
-					imagePreview.innerHTML = '';
-				}
+				clearImageSelection();
 			});
 		}
 	}
