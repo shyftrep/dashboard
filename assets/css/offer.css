@@ -13,7 +13,7 @@
 	position: relative;
 	overflow: hidden;
 	display: grid;
-	grid-template-columns: minmax(0, 240px) minmax(0, 1fr);
+	grid-template-columns: minmax(280px, 42%) minmax(0, 1fr);
 	gap: clamp(20px, 3vw, 32px);
 	align-items: center;
 	width: 100%;
@@ -41,7 +41,7 @@
 .shyft-offer__image {
 	display: block;
 	width: 100%;
-	max-width: 240px;
+	max-width: 100%;
 	height: auto;
 	object-fit: contain;
 	border-radius: 16px;
@@ -209,7 +209,7 @@
 	}
 
 	.shyft-offer__image {
-		max-width: 200px;
+		max-width: 100%;
 		border-radius: 14px;
 		transform: none;
 		margin-bottom: 20px;
