@@ -92,7 +92,7 @@ final class Shyft_Dashboard_Offers_Display {
 					<p class="shyft-offer__deadline"><?php echo esc_html( $end_label ); ?></p>
 				<?php endif; ?>
 				<?php if ( '' !== $headline ) : ?>
-					<h2 class="shyft-offer__headline"><?php echo esc_html( $headline ); ?></h2>
+					<h2 class="shyft-offer__headline"><?php echo wp_kses( $headline, array( 'strong' => array(), 'em' => array(), 'br' => array() ) ); ?></h2>
 				<?php endif; ?>
 				<?php if ( '' !== $text ) : ?>
 					<div class="shyft-offer__text">
@@ -119,14 +119,16 @@ final class Shyft_Dashboard_Offers_Display {
 					</ul>
 				<?php endif; ?>
 				<?php if ( '' !== $button_url ) : ?>
-					<a class="shyft-offer__button shyft-offer__button--whatsapp" href="<?php echo esc_url( $button_url ); ?>" target="_blank" rel="noopener noreferrer">
-						<span class="shyft-offer__button-icon" aria-hidden="true">
-							<?php self::render_whatsapp_icon(); ?>
-						</span>
-						<span class="shyft-offer__button-label">
-							<?php echo esc_html( '' !== $button_label ? $button_label : __( 'WhatsApp', 'shyft-dashboard' ) ); ?>
-						</span>
-					</a>
+					<div class="shyft-offer__btn">
+						<a class="shyft-offer__button shyft-offer__button--whatsapp" href="<?php echo esc_url( $button_url ); ?>" target="_blank" rel="noopener noreferrer">
+							<span class="shyft-offer__button-icon" aria-hidden="true">
+								<?php self::render_whatsapp_icon(); ?>
+							</span>
+							<span class="shyft-offer__button-label">
+								<?php echo esc_html( '' !== $button_label ? $button_label : __( 'WhatsApp', 'shyft-dashboard' ) ); ?>
+							</span>
+						</a>
+					</div>
 				<?php endif; ?>
 			</div>
 		</article>
