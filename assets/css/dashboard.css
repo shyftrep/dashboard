@@ -187,7 +187,7 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 	display: block;
 	height: 32px;
 	width: auto;
-	max-width: 140px;
+	max-width: 160px;
 	object-fit: contain;
 }
 
