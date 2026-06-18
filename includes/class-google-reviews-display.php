@@ -160,17 +160,21 @@ final class Shyft_Dashboard_Google_Reviews_Display {
 							<header class="shyft-reviews__card-header">
 								<?php if ( ! empty( $review['photo'] ) ) : ?>
 									<img class="shyft-reviews__avatar" src="<?php echo esc_url( (string) $review['photo'] ); ?>" alt="" width="40" height="40" loading="lazy" decoding="async">
+								<?php else : ?>
+									<span class="shyft-reviews__avatar shyft-reviews__avatar--placeholder" aria-hidden="true">
+										<?php echo esc_html( self::get_author_initial( (string) ( $review['author'] ?? '' ) ) ); ?>
+									</span>
 								<?php endif; ?>
-								<div class="shyft-reviews__card-meta">
-									<p class="shyft-reviews__author"><?php echo esc_html( (string) ( $review['author'] ?? '' ) ); ?></p>
-									<p class="shyft-reviews__stars-small" aria-hidden="true"><?php echo esc_html( self::render_stars_text( (float) ( $review['rating'] ?? 0 ) ) ); ?></p>
-									<?php if ( ! empty( $review['relative_time'] ) ) : ?>
-										<p class="shyft-reviews__time"><?php echo esc_html( (string) $review['relative_time'] ); ?></p>
-									<?php endif; ?>
-								</div>
+								<p class="shyft-reviews__author"><?php echo esc_html( (string) ( $review['author'] ?? '' ) ); ?></p>
 							</header>
+							<p class="shyft-reviews__stars-small" aria-hidden="true"><?php echo esc_html( self::render_stars_text( (float) ( $review['rating'] ?? 0 ) ) ); ?></p>
 							<?php if ( ! empty( $review['text'] ) ) : ?>
 								<p class="shyft-reviews__text"><?php echo esc_html( (string) $review['text'] ); ?></p>
+							<?php endif; ?>
+							<?php if ( ! empty( $review['relative_time'] ) ) : ?>
+								<footer class="shyft-reviews__card-footer">
+									<p class="shyft-reviews__time"><?php echo esc_html( (string) $review['relative_time'] ); ?></p>
+								</footer>
 							<?php endif; ?>
 						</article>
 					<?php endforeach; ?>
@@ -253,6 +257,13 @@ final class Shyft_Dashboard_Google_Reviews_Display {
 		}
 
 		wp_enqueue_style( 'shyft-google-reviews' );
+
+		$custom_css = Shyft_Dashboard_Settings::get_google_reviews_custom_css();
+
+		if ( '' !== $custom_css ) {
+			wp_add_inline_style( 'shyft-google-reviews', $custom_css );
+		}
+
 		wp_enqueue_script( 'shyft-google-reviews' );
 		self::$assets_enqueued = true;
 	}
@@ -272,5 +283,19 @@ final class Shyft_Dashboard_Google_Reviews_Display {
 			number_format_i18n( $rating, 1 ),
 			$total
 		);
+	}
+
+	private static function get_author_initial( string $author ): string {
+		$author = trim( $author );
+
+		if ( '' === $author ) {
+			return '?';
+		}
+
+		if ( function_exists( 'mb_substr' ) ) {
+			return mb_strtoupper( mb_substr( $author, 0, 1 ) );
+		}
+
+		return strtoupper( substr( $author, 0, 1 ) );
 	}
 }

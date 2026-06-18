@@ -126,6 +126,16 @@ final class Shyft_Dashboard_Settings {
 			)
 		);
 
+		register_setting(
+			self::OPTION_GROUP,
+			'shyft_dashboard_google_reviews_custom_css',
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => array( self::class, 'sanitize_custom_css' ),
+				'default'           => '',
+			)
+		);
+
 		add_settings_section(
 			'shyft_dashboard_main',
 			__( 'Dashboard-Einstellungen', 'shyft-dashboard' ),
@@ -160,6 +170,7 @@ final class Shyft_Dashboard_Settings {
 		self::add_field( 'shyft_dashboard_update_check', __( 'Update-Prüfung', 'shyft-dashboard' ), 'render_update_check_field', 'shyft_dashboard_updates' );
 		self::add_field( 'shyft_dashboard_google_place_id', __( 'Google Place ID', 'shyft-dashboard' ), 'render_google_place_id_field', 'shyft_dashboard_google_reviews' );
 		self::add_field( 'shyft_dashboard_google_api_key', __( 'Google API-Schlüssel', 'shyft-dashboard' ), 'render_google_api_key_field', 'shyft_dashboard_google_reviews' );
+		self::add_field( 'shyft_dashboard_google_reviews_custom_css', __( 'Widget Custom CSS', 'shyft-dashboard' ), 'render_google_reviews_custom_css_field', 'shyft_dashboard_google_reviews' );
 		self::add_field( 'shyft_dashboard_google_reviews_sync', __( 'Bewertungen synchronisieren', 'shyft-dashboard' ), 'render_google_reviews_sync_field', 'shyft_dashboard_google_reviews' );
 	}
 
@@ -192,6 +203,18 @@ final class Shyft_Dashboard_Settings {
 	 */
 	public static function sanitize_url( $value ): string {
 		return esc_url_raw( (string) $value );
+	}
+
+	/**
+	 * Sanitizes custom CSS for the reviews widget.
+	 *
+	 * @param mixed $value Raw value.
+	 */
+	public static function sanitize_custom_css( $value ): string {
+		$value = wp_check_invalid_utf8( (string) $value );
+		$value = preg_replace( '#</?\s*(script|style)\b[^>]*>#i', '', $value );
+
+		return trim( $value );
 	}
 
 	/**
@@ -697,7 +720,22 @@ final class Shyft_Dashboard_Settings {
 			autocomplete="off"
 		/>
 		<p class="description">
-			<?php esc_html_e( 'Place ID aus der Google Maps URL oder dem Place ID Finder.', 'shyft-dashboard' ); ?>
+			<?php
+			printf(
+				wp_kses(
+					/* translators: %s: URL to Google Place ID Finder */
+					__( 'Place ID aus der Google Maps URL oder dem <a href="%s" target="_blank" rel="noopener noreferrer">Place ID Finder</a> von Google.', 'shyft-dashboard' ),
+					array(
+						'a' => array(
+							'href'   => array(),
+							'target' => array(),
+							'rel'    => array(),
+						),
+					)
+				),
+				esc_url( 'https://developers.google.com/maps/documentation/javascript/examples/places-placeid-finder' )
+			);
+			?>
 		</p>
 		<?php
 	}
@@ -729,6 +767,87 @@ final class Shyft_Dashboard_Settings {
 			?>
 		</p>
 		<?php
+	}
+
+	/**
+	 * @param array<string, string> $args Field arguments.
+	 */
+	public static function render_google_reviews_custom_css_field( array $args ): void {
+		$option   = $args['option'];
+		$value    = get_option( $option, '' );
+		$template = self::get_google_reviews_css_template();
+		?>
+		<textarea
+			id="<?php echo esc_attr( $option ); ?>"
+			name="<?php echo esc_attr( $option ); ?>"
+			rows="14"
+			class="large-text code"
+			style="font-family: Consolas, Monaco, monospace; font-size: 12px;"
+			spellcheck="false"
+		><?php echo esc_textarea( (string) $value ); ?></textarea>
+		<p class="description">
+			<?php esc_html_e( 'Optionales CSS für Shortcode und Elementor-Widget. Leer lassen = Kacheln im Google-Stil, Hauptbereich ohne Hintergrund/Rahmen. Wird nach dem Basis-Stylesheet geladen.', 'shyft-dashboard' ); ?>
+		</p>
+		<details style="margin-top: 12px; max-width: 720px;">
+			<summary><?php esc_html_e( 'CSS-Vorlage zum Kopieren', 'shyft-dashboard' ); ?></summary>
+			<textarea
+				readonly
+				rows="14"
+				class="large-text code"
+				style="margin-top: 8px; font-family: Consolas, Monaco, monospace; font-size: 12px;"
+				onfocus="this.select();"
+				aria-label="<?php esc_attr_e( 'CSS-Vorlage für Google Reviews Widget', 'shyft-dashboard' ); ?>"
+			><?php echo esc_textarea( $template ); ?></textarea>
+			<p class="description"><?php esc_html_e( 'Markieren, kopieren und oben einfügen – dann anpassen.', 'shyft-dashboard' ); ?></p>
+		</details>
+		<?php
+	}
+
+	/**
+	 * Starter CSS for the Google Reviews widget (copy template).
+	 */
+	public static function get_google_reviews_css_template(): string {
+		return <<<'CSS'
+/* Hauptbereich: transparent – Header/CTA per Theme oder hier anpassen */
+.shyft-reviews {
+	background: transparent;
+	border: 0;
+	padding: 0;
+}
+
+/* Kacheln wie Google Reviews (Screenshot-Vorlage) */
+.shyft-reviews {
+	--shyft-reviews-tile-bg: #fff;
+	--shyft-reviews-tile-border: #e8eaed;
+	--shyft-reviews-tile-accent-1: #34a853;
+	--shyft-reviews-tile-accent-2: #4285f4;
+	--shyft-reviews-tile-accent-3: #a142f4;
+	--shyft-reviews-star: #fbbc04;
+	--shyft-reviews-tile-radius: 8px;
+}
+
+.shyft-reviews__card {
+	background: var(--shyft-reviews-tile-bg);
+	border: 1px solid var(--shyft-reviews-tile-border);
+	border-radius: var(--shyft-reviews-tile-radius);
+	box-shadow: 0 1px 2px rgba(60, 64, 67, 0.08);
+}
+
+.shyft-reviews__card:nth-child(3n + 1) { border-top: 3px solid var(--shyft-reviews-tile-accent-1); }
+.shyft-reviews__card:nth-child(3n + 2) { border-top: 3px solid var(--shyft-reviews-tile-accent-2); }
+.shyft-reviews__card:nth-child(3n + 3) { border-top: 3px solid var(--shyft-reviews-tile-accent-3); }
+
+.shyft-reviews__stars,
+.shyft-reviews__stars-small {
+	color: var(--shyft-reviews-star);
+}
+
+/* Optional: Header & Button im Theme-Stil */
+/*
+.shyft-reviews__header { margin-bottom: 24px; }
+.shyft-reviews__cta { ... }
+*/
+CSS;
 	}
 
 	/**
@@ -864,5 +983,9 @@ final class Shyft_Dashboard_Settings {
 		}
 
 		return trim( (string) get_option( 'shyft_dashboard_google_api_key', '' ) );
+	}
+
+	public static function get_google_reviews_custom_css(): string {
+		return trim( (string) get_option( 'shyft_dashboard_google_reviews_custom_css', '' ) );
 	}
 }

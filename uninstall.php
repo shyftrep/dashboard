@@ -24,6 +24,7 @@ delete_option( 'shyft_dashboard_agency_email' );
 delete_option( 'shyft_dashboard_logo_url' );
 delete_option( 'shyft_dashboard_google_place_id' );
 delete_option( 'shyft_dashboard_google_api_key' );
+delete_option( 'shyft_dashboard_google_reviews_custom_css' );
 delete_option( Shyft_Dashboard_Google_Reviews::OPTION_DATA );
 
 wp_clear_scheduled_hook( Shyft_Dashboard_Google_Reviews::CRON_HOOK );
