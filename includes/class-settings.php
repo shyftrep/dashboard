@@ -136,6 +136,16 @@ final class Shyft_Dashboard_Settings {
 			)
 		);
 
+		register_setting(
+			self::OPTION_GROUP,
+			'shyft_dashboard_offers_custom_css',
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => array( self::class, 'sanitize_custom_css' ),
+				'default'           => '',
+			)
+		);
+
 		add_settings_section(
 			'shyft_dashboard_main',
 			__( 'Dashboard-Einstellungen', 'shyft-dashboard' ),
@@ -164,6 +174,13 @@ final class Shyft_Dashboard_Settings {
 			self::PAGE_SLUG
 		);
 
+		add_settings_section(
+			'shyft_dashboard_offers',
+			__( 'Angebote', 'shyft-dashboard' ),
+			array( self::class, 'render_offers_section_description' ),
+			self::PAGE_SLUG
+		);
+
 		self::add_field( 'shyft_dashboard_logo_url', __( 'Dashboard-Logo', 'shyft-dashboard' ), 'render_logo_field', 'shyft_dashboard_main' );
 		self::add_field( 'shyft_dashboard_matomo_token', __( 'Matomo API-Token (optional)', 'shyft-dashboard' ), 'render_matomo_token_field', 'shyft_dashboard_matomo' );
 		self::add_field( 'shyft_dashboard_github_token', __( 'GitHub-Zugriffstoken', 'shyft-dashboard' ), 'render_github_token_field', 'shyft_dashboard_updates' );
@@ -172,6 +189,7 @@ final class Shyft_Dashboard_Settings {
 		self::add_field( 'shyft_dashboard_google_api_key', __( 'Google API-Schlüssel', 'shyft-dashboard' ), 'render_google_api_key_field', 'shyft_dashboard_google_reviews' );
 		self::add_field( 'shyft_dashboard_google_reviews_custom_css', __( 'Widget Custom CSS', 'shyft-dashboard' ), 'render_google_reviews_custom_css_field', 'shyft_dashboard_google_reviews' );
 		self::add_field( 'shyft_dashboard_google_reviews_sync', __( 'Bewertungen synchronisieren', 'shyft-dashboard' ), 'render_google_reviews_sync_field', 'shyft_dashboard_google_reviews' );
+		self::add_field( 'shyft_dashboard_offers_custom_css', __( 'Angebots-Kachel Custom CSS', 'shyft-dashboard' ), 'render_offers_custom_css_field', 'shyft_dashboard_offers' );
 	}
 
 	/**
@@ -690,6 +708,87 @@ final class Shyft_Dashboard_Settings {
 	}
 
 	/**
+	 * Angebote section intro.
+	 */
+	public static function render_offers_section_description(): void {
+		?>
+		<p><?php esc_html_e( 'Angebote werden im Kunden-Dashboard unter /dashboard/angebote/ verwaltet. Das Custom CSS gilt für die öffentliche Kachel (Shortcode und Elementor-Widget).', 'shyft-dashboard' ); ?></p>
+		<p>
+			<?php esc_html_e( 'Shortcode:', 'shyft-dashboard' ); ?>
+			<code>[clicklabs_angebot]</code>
+			<?php esc_html_e( '· Elementor-Widget „Angebot (clicklabs)“', 'shyft-dashboard' ); ?>
+		</p>
+		<?php
+	}
+
+	/**
+	 * @param array<string, string> $args Field arguments.
+	 */
+	public static function render_offers_custom_css_field( array $args ): void {
+		$option   = $args['option'];
+		$value    = get_option( $option, '' );
+		$template = self::get_offers_css_template();
+		?>
+		<textarea
+			id="<?php echo esc_attr( $option ); ?>"
+			name="<?php echo esc_attr( $option ); ?>"
+			rows="14"
+			class="large-text code"
+			style="font-family: Consolas, Monaco, monospace; font-size: 12px;"
+			spellcheck="false"
+		><?php echo esc_textarea( (string) $value ); ?></textarea>
+		<p class="description">
+			<?php esc_html_e( 'Optionales CSS – wird nach dem Standard-Stylesheet geladen. Leer lassen = nur Plugin-Standard.', 'shyft-dashboard' ); ?>
+		</p>
+		<details style="margin-top: 12px; max-width: 720px;">
+			<summary><?php esc_html_e( 'CSS-Vorlage zum Kopieren', 'shyft-dashboard' ); ?></summary>
+			<textarea
+				readonly
+				rows="14"
+				class="large-text code"
+				style="margin-top: 8px; font-family: Consolas, Monaco, monospace; font-size: 12px;"
+				onfocus="this.select();"
+				aria-label="<?php esc_attr_e( 'CSS-Vorlage für Angebots-Kachel', 'shyft-dashboard' ); ?>"
+			><?php echo esc_textarea( $template ); ?></textarea>
+			<p class="description"><?php esc_html_e( 'Markieren, kopieren und oben einfügen – dann anpassen.', 'shyft-dashboard' ); ?></p>
+		</details>
+		<?php
+	}
+
+	/**
+	 * Starter CSS for the public offer card.
+	 */
+	public static function get_offers_css_template(): string {
+		return <<<'CSS'
+/* Überschreibungen – Standard ist assets/css/offer.css */
+
+/* Beispiel: Hintergrund der Kachel (z. B. für Elementor-Container) */
+/*
+.shyft-offer {
+	background: linear-gradient(135deg, #f3f7f4 0%, #e7eeea 100%);
+	border-radius: 34px;
+}
+*/
+
+/* Beispiel: Überschrift */
+/*
+.shyft-offer__headline {
+	color: #172a39;
+	font-size: 48px;
+}
+*/
+
+/* Beispiel: Aufzählungspunkte */
+/*
+.shyft-offer__icon-item {
+	background: rgba(255, 255, 255, 0.8);
+	min-width: 200px;
+}
+*/
+CSS;
+	}
+
+	/**
 	 * Google Reviews section intro.
 	 */
 	public static function render_google_reviews_section_description(): void {
@@ -973,5 +1072,9 @@ CSS;
 
 	public static function get_google_reviews_custom_css(): string {
 		return trim( (string) get_option( 'shyft_dashboard_google_reviews_custom_css', '' ) );
+	}
+
+	public static function get_offers_custom_css(): string {
+		return trim( (string) get_option( 'shyft_dashboard_offers_custom_css', '' ) );
 	}
 }

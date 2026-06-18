@@ -26,6 +26,7 @@ delete_option( 'shyft_dashboard_logo_url' );
 delete_option( 'shyft_dashboard_google_place_id' );
 delete_option( 'shyft_dashboard_google_api_key' );
 delete_option( 'shyft_dashboard_google_reviews_custom_css' );
+delete_option( 'shyft_dashboard_offers_custom_css' );
 delete_option( Shyft_Dashboard_Google_Reviews::OPTION_DATA );
 delete_option( Shyft_Dashboard_Google_Reviews::OPTION_LAST_SEEN );
 
