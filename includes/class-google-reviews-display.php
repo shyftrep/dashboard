@@ -150,10 +150,6 @@ final class Shyft_Dashboard_Google_Reviews_Display {
 			<?php endif; ?>
 
 			<div class="shyft-reviews__track-wrap">
-				<?php if ( $slider ) : ?>
-					<button type="button" class="shyft-reviews__nav shyft-reviews__nav--prev" aria-label="<?php esc_attr_e( 'Vorherige Bewertung', 'shyft-dashboard' ); ?>" data-shyft-reviews-prev>&larr;</button>
-				<?php endif; ?>
-
 				<div class="shyft-reviews__track" data-shyft-reviews-track>
 					<?php foreach ( $reviews as $index => $review ) : ?>
 						<article class="shyft-reviews__card" data-shyft-reviews-slide="<?php echo esc_attr( (string) $index ); ?>">
@@ -179,14 +175,16 @@ final class Shyft_Dashboard_Google_Reviews_Display {
 						</article>
 					<?php endforeach; ?>
 				</div>
-
-				<?php if ( $slider ) : ?>
-					<button type="button" class="shyft-reviews__nav shyft-reviews__nav--next" aria-label="<?php esc_attr_e( 'Nächste Bewertung', 'shyft-dashboard' ); ?>" data-shyft-reviews-next>&rarr;</button>
-				<?php endif; ?>
 			</div>
 
 			<?php if ( $slider ) : ?>
-				<div class="shyft-reviews__dots" data-shyft-reviews-dots aria-hidden="true"></div>
+				<div class="shyft-reviews__controls">
+					<div class="shyft-reviews__nav-group">
+						<button type="button" class="shyft-reviews__nav shyft-reviews__nav--prev" aria-label="<?php esc_attr_e( 'Vorherige Bewertung', 'shyft-dashboard' ); ?>" data-shyft-reviews-prev>&larr;</button>
+						<button type="button" class="shyft-reviews__nav shyft-reviews__nav--next" aria-label="<?php esc_attr_e( 'Nächste Bewertung', 'shyft-dashboard' ); ?>" data-shyft-reviews-next>&rarr;</button>
+					</div>
+					<div class="shyft-reviews__dots" data-shyft-reviews-dots aria-hidden="true"></div>
+				</div>
 			<?php endif; ?>
 		</div>
 		<?php
