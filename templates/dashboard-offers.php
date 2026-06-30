@@ -50,7 +50,7 @@ $is_editing        = is_array( $edit_offer );
 	</script>
 	<?php Shyft_Dashboard_Routing::print_head_assets(); ?>
 </head>
-<body class="shyft-dashboard-body">
+<body class="shyft-dashboard-body<?php echo $is_editing ? ' shyft-dashboard-body--editing-offer' : ''; ?>">
 <div class="shyft-dashboard">
 	<header class="shyft-dashboard__header">
 		<div class="shyft-dashboard__header-bar">
@@ -63,6 +63,11 @@ $is_editing        = is_array( $edit_offer );
 			$active_view = 'angebote';
 			include SHYFT_DASHBOARD_PATH . 'templates/partials/dashboard-nav.php';
 			?>
+			<?php if ( $is_editing ) : ?>
+				<button type="submit" form="shyft-offer-form" class="shyft-dashboard__offer-save shyft-button">
+					<?php esc_html_e( 'Angebot speichern', 'shyft-dashboard' ); ?>
+				</button>
+			<?php endif; ?>
 			<?php if ( ! empty( $show_website_link ) ) : ?>
 				<a href="<?php echo esc_url( $website_url ); ?>" class="shyft-dashboard__website-link">
 					<?php esc_html_e( 'Website bearbeiten', 'shyft-dashboard' ); ?>
@@ -155,7 +160,7 @@ $is_editing        = is_array( $edit_offer );
 						<?php echo $is_editing ? esc_html__( 'Angebot bearbeiten', 'shyft-dashboard' ) : esc_html__( 'Neues Angebot', 'shyft-dashboard' ); ?>
 					</h2>
 
-					<form class="shyft-form shyft-offer-form" method="post" action="<?php echo esc_url( $form_action ); ?>" enctype="multipart/form-data" data-shyft-offer-form>
+					<form id="shyft-offer-form" class="shyft-form shyft-offer-form" method="post" action="<?php echo esc_url( $form_action ); ?>" enctype="multipart/form-data" data-shyft-offer-form>
 						<input type="hidden" name="action" value="<?php echo esc_attr( Shyft_Dashboard_Offers::ACTION_SAVE ); ?>">
 						<?php wp_nonce_field( Shyft_Dashboard_Offers::NONCE_SAVE ); ?>
 						<input type="hidden" name="offer_id" value="<?php echo esc_attr( $is_editing ? (string) (int) ( $edit_offer['id'] ?? 0 ) : '0' ); ?>">

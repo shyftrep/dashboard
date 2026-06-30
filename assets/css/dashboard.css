@@ -1420,7 +1420,32 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 
 	.shyft-dashboard__header-actions {
 		width: 100%;
-		justify-content: space-between;
+		flex-direction: column;
+		align-items: stretch;
+		gap: 10px;
+	}
+
+	.shyft-dashboard-nav {
+		margin-right: 0;
+		width: 100%;
+		display: flex;
+	}
+
+	.shyft-dashboard-nav__link {
+		flex: 1;
+		justify-content: center;
+	}
+
+	.shyft-dashboard__logout {
+		align-self: flex-end;
+	}
+
+	.shyft-dashboard-body--editing-offer .shyft-dashboard__offer-save {
+		display: inline-flex;
+		width: 100%;
+		justify-content: center;
+		padding: 11px 16px;
+		font-size: 14px;
 	}
 
 	.shyft-dashboard__activity {
@@ -1480,6 +1505,10 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 .shyft-dashboard-nav__link:focus {
 	color: var(--shyft-text);
 	border-color: var(--shyft-primary);
+}
+
+.shyft-dashboard__offer-save {
+	display: none;
 }
 
 .shyft-offers-admin {
@@ -1702,6 +1731,41 @@ body.shyft-dashboard-body footer:not(.shyft-dashboard__footer) {
 	.shyft-offers-admin__list-header .shyft-button {
 		width: 100%;
 		padding: 12px 16px;
+	}
+
+	.shyft-dashboard-body--editing-offer .shyft-offers-admin {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.shyft-dashboard-body--editing-offer .shyft-offers-admin__form-card {
+		order: -1;
+	}
+
+	.shyft-offers-admin__item-actions {
+		width: 100%;
+		gap: 10px;
+	}
+
+	.shyft-offers-admin__edit {
+		flex: 1;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 40px;
+		padding: 8px 12px;
+		border: 1px solid var(--shyft-border);
+		background: var(--shyft-bg);
+		text-decoration: none;
+	}
+
+	.shyft-offers-admin__delete {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 40px;
+		padding: 8px 12px;
+		text-decoration: none;
 	}
 
 	.shyft-offers-admin__item {
