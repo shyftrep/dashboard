@@ -51,6 +51,19 @@ final class Shyft_Dashboard_Elementor_Reviews_Badge_Widget extends \Elementor\Wi
 		);
 
 		$this->add_control(
+			'style',
+			array(
+				'label'   => __( 'Badge-Stil', 'shyft-dashboard' ),
+				'type'    => \Elementor\Controls_Manager::SELECT,
+				'default' => 'inline',
+				'options' => array(
+					'inline' => __( 'Kompakt (eine Zeile)', 'shyft-dashboard' ),
+					'card'   => __( 'Karte (Trust-Badge)', 'shyft-dashboard' ),
+				),
+			)
+		);
+
+		$this->add_control(
 			'extra_text',
 			array(
 				'label'       => __( 'Zusatztext', 'shyft-dashboard' ),
@@ -58,6 +71,38 @@ final class Shyft_Dashboard_Elementor_Reviews_Badge_Widget extends \Elementor\Wi
 				'default'     => '',
 				'placeholder' => __( '+450 zufriedene Kunden', 'shyft-dashboard' ),
 				'label_block' => true,
+				'condition'   => array(
+					'style' => 'inline',
+				),
+			)
+		);
+
+		$this->add_control(
+			'title_text',
+			array(
+				'label'       => __( 'Titel (fett)', 'shyft-dashboard' ),
+				'type'        => \Elementor\Controls_Manager::TEXTAREA,
+				'default'     => '',
+				'placeholder' => "Bestbewerteter\nService 2026",
+				'rows'        => 3,
+				'label_block' => true,
+				'condition'   => array(
+					'style' => 'card',
+				),
+			)
+		);
+
+		$this->add_control(
+			'subtitle_text',
+			array(
+				'label'       => __( 'Unterzeile (klein)', 'shyft-dashboard' ),
+				'type'        => \Elementor\Controls_Manager::TEXT,
+				'default'     => '',
+				'placeholder' => __( 'verifiziert von: Google', 'shyft-dashboard' ),
+				'label_block' => true,
+				'condition'   => array(
+					'style' => 'card',
+				),
 			)
 		);
 
@@ -80,8 +125,11 @@ final class Shyft_Dashboard_Elementor_Reviews_Badge_Widget extends \Elementor\Wi
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in display class.
 		echo Shyft_Dashboard_Google_Reviews_Display::render_badge(
 			array(
-				'extra_text' => (string) ( $settings['extra_text'] ?? '' ),
-				'link'       => ( $settings['link'] ?? '' ) === 'yes',
+				'style'         => (string) ( $settings['style'] ?? 'inline' ),
+				'extra_text'    => (string) ( $settings['extra_text'] ?? '' ),
+				'title_text'    => (string) ( $settings['title_text'] ?? '' ),
+				'subtitle_text' => (string) ( $settings['subtitle_text'] ?? '' ),
+				'link'          => ( $settings['link'] ?? '' ) === 'yes',
 			)
 		);
 	}

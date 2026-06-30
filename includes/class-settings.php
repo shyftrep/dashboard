@@ -889,6 +889,8 @@ CSS;
 			<code>[clicklabs_reviews]</code>
 			<?php esc_html_e( '·', 'shyft-dashboard' ); ?>
 			<code>[clicklabs_reviews_badge text="+450 zufriedene Kunden"]</code>
+			<?php esc_html_e( '·', 'shyft-dashboard' ); ?>
+			<code>[clicklabs_reviews_badge style="card" title="Bestbewerteter|Service 2026" subtitle="verifiziert von: Google"]</code>
 		</p>
 		<p>
 			<?php esc_html_e( 'Elementor:', 'shyft-dashboard' ); ?>

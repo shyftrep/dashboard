@@ -82,8 +82,11 @@ final class Shyft_Dashboard_Google_Reviews_Display {
 	public static function render_badge_shortcode( $atts = array() ): string {
 		$atts = shortcode_atts(
 			array(
-				'text' => '',
-				'link' => '0',
+				'style'    => 'inline',
+				'text'     => '',
+				'title'    => '',
+				'subtitle' => '',
+				'link'     => '0',
 			),
 			is_array( $atts ) ? $atts : array(),
 			'clicklabs_reviews_badge'
@@ -91,8 +94,11 @@ final class Shyft_Dashboard_Google_Reviews_Display {
 
 		return self::render_badge(
 			array(
-				'extra_text' => $atts['text'],
-				'link'       => '1' === $atts['link'] || 'true' === $atts['link'],
+				'style'        => $atts['style'],
+				'extra_text'   => $atts['text'],
+				'title_text'   => $atts['title'],
+				'subtitle_text'=> $atts['subtitle'],
+				'link'         => '1' === $atts['link'] || 'true' === $atts['link'],
 			)
 		);
 	}
@@ -106,8 +112,11 @@ final class Shyft_Dashboard_Google_Reviews_Display {
 		$args = wp_parse_args(
 			$args,
 			array(
-				'extra_text' => '',
-				'link'       => false,
+				'style'         => 'inline',
+				'extra_text'    => '',
+				'title_text'    => '',
+				'subtitle_text' => '',
+				'link'          => false,
 			)
 		);
 
@@ -126,8 +135,7 @@ final class Shyft_Dashboard_Google_Reviews_Display {
 
 		self::enqueue_badge_assets();
 
-		$extra_text = trim( (string) $args['extra_text'] );
-		$link_url   = '';
+		$link_url = '';
 
 		if ( ! empty( $args['link'] ) ) {
 			$link_url = (string) ( $data['place_url'] ?? '' );
@@ -137,11 +145,25 @@ final class Shyft_Dashboard_Google_Reviews_Display {
 			}
 		}
 
+		if ( 'card' === $args['style'] ) {
+			return self::render_badge_card( $rating, $args, $link_url );
+		}
+
+		return self::render_badge_inline( $rating, $total, $args, $link_url );
+	}
+
+	/**
+	 * Inline badge: Google · Sterne · Schnitt · Anzahl · Zusatztext.
+	 *
+	 * @param array<string, mixed> $args Display options.
+	 */
+	private static function render_badge_inline( float $rating, int $total, array $args, string $link_url ): string {
+		$extra_text    = trim( (string) $args['extra_text'] );
 		$summary_label = self::format_rating_label( $rating, $total );
 
 		ob_start();
 		?>
-		<div class="shyft-reviews-badge">
+		<div class="shyft-reviews-badge shyft-reviews-badge--inline">
 			<?php if ( '' !== $link_url ) : ?>
 				<a
 					class="shyft-reviews-badge__summary shyft-reviews-badge__summary--link"
@@ -159,8 +181,62 @@ final class Shyft_Dashboard_Google_Reviews_Display {
 			<?php endif; ?>
 
 			<?php if ( '' !== $extra_text ) : ?>
-				<p class="shyft-reviews-badge__extra"><?php echo esc_html( $extra_text ); ?></p>
+				<span class="shyft-reviews-badge__extra"><?php echo esc_html( $extra_text ); ?></span>
 			<?php endif; ?>
+		</div>
+		<?php
+
+		return (string) ob_get_clean();
+	}
+
+	/**
+	 * Card badge: Google + Stern links, Freitext rechts (Titel + Unterzeile).
+	 *
+	 * @param array<string, mixed> $args Display options.
+	 */
+	private static function render_badge_card( float $rating, array $args, string $link_url ): string {
+		$title_html    = self::format_badge_title_lines( (string) $args['title_text'] );
+		$subtitle_text = trim( (string) $args['subtitle_text'] );
+		$summary_label = sprintf(
+			/* translators: %s: rating value */
+			__( 'Google-Bewertung %s von 5', 'shyft-dashboard' ),
+			number_format_i18n( $rating, 1 )
+		);
+
+		$tag        = '' !== $link_url ? 'a' : 'div';
+		$link_attrs = '';
+
+		if ( '' !== $link_url ) {
+			$link_attrs = sprintf(
+				' href="%s" target="_blank" rel="noopener noreferrer"',
+				esc_url( $link_url )
+			);
+		}
+
+		ob_start();
+		?>
+		<div class="shyft-reviews-badge shyft-reviews-badge--card">
+			<?php // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from escaped fragments. ?>
+			<<?php echo $tag; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> class="shyft-reviews-badge__card-inner"<?php echo $link_attrs; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> aria-label="<?php echo esc_attr( $summary_label ); ?>">
+				<div class="shyft-reviews-badge__card-side">
+					<span class="shyft-reviews-badge__icon shyft-reviews-badge__icon--card" aria-hidden="true">
+						<?php self::print_google_icon_svg( 26 ); ?>
+					</span>
+					<span class="shyft-reviews-badge__card-rating">
+						<span class="shyft-reviews-badge__card-star" aria-hidden="true"><?php self::print_star_icon_svg(); ?></span>
+						<span class="shyft-reviews-badge__card-rating-value"><?php echo esc_html( number_format_i18n( $rating, 1 ) ); ?></span>
+					</span>
+				</div>
+				<span class="shyft-reviews-badge__card-divider" aria-hidden="true"></span>
+				<div class="shyft-reviews-badge__card-content">
+					<?php if ( '' !== $title_html ) : ?>
+						<p class="shyft-reviews-badge__card-title"><?php echo $title_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></p>
+					<?php endif; ?>
+					<?php if ( '' !== $subtitle_text ) : ?>
+						<p class="shyft-reviews-badge__card-subtitle"><?php echo esc_html( $subtitle_text ); ?></p>
+					<?php endif; ?>
+				</div>
+			</<?php echo $tag; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
 		</div>
 		<?php
 
@@ -427,9 +503,9 @@ final class Shyft_Dashboard_Google_Reviews_Display {
 		<?php
 	}
 
-	private static function print_google_icon_svg(): void {
+	private static function print_google_icon_svg( int $size = 20 ): void {
 		?>
-		<svg class="shyft-reviews-badge__google" viewBox="0 0 24 24" width="20" height="20" role="img" focusable="false">
+		<svg class="shyft-reviews-badge__google" viewBox="0 0 24 24" width="<?php echo esc_attr( (string) $size ); ?>" height="<?php echo esc_attr( (string) $size ); ?>" role="img" focusable="false">
 			<title><?php esc_html_e( 'Google', 'shyft-dashboard' ); ?></title>
 			<path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
 			<path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -437,6 +513,42 @@ final class Shyft_Dashboard_Google_Reviews_Display {
 			<path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
 		</svg>
 		<?php
+	}
+
+	private static function print_star_icon_svg(): void {
+		?>
+		<svg class="shyft-reviews-badge__star-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+			<path fill="#FBBC04" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+		</svg>
+		<?php
+	}
+
+	/**
+	 * Formats multiline title text (newline or | as line break).
+	 */
+	private static function format_badge_title_lines( string $text ): string {
+		$text = trim( $text );
+
+		if ( '' === $text ) {
+			return '';
+		}
+
+		$text  = str_replace( '|', "\n", $text );
+		$lines = preg_split( '/\r\n|\r|\n/', $text );
+		$lines = is_array( $lines ) ? $lines : array( $text );
+		$html  = '';
+
+		foreach ( $lines as $line ) {
+			$line = trim( (string) $line );
+
+			if ( '' === $line ) {
+				continue;
+			}
+
+			$html .= '<span class="shyft-reviews-badge__card-title-line">' . esc_html( $line ) . '</span>';
+		}
+
+		return $html;
 	}
 
 	private static function render_stars_text( float $rating ): string {
