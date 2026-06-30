@@ -794,6 +794,7 @@ CSS;
 	public static function render_google_reviews_section_description(): void {
 		?>
 		<p><?php esc_html_e( 'Bewertungen werden per Cron alle 12 Stunden von Google geladen und lokal gespeichert. Die Website zeigt nur die gespeicherten Daten – keine API-Aufrufe beim Seitenaufruf.', 'shyft-dashboard' ); ?></p>
+		<p><?php esc_html_e( 'Hinweis: Die Google Places API liefert pro Abruf höchstens 5 Bewertungen. Das Plugin holt „neueste“ und „relevanteste“ Bewertungen und zeigt bis zu 10 im Slider an.', 'shyft-dashboard' ); ?></p>
 		<p>
 			<?php esc_html_e( 'Shortcode:', 'shyft-dashboard' ); ?>
 			<code>[clicklabs_reviews]</code>
@@ -954,11 +955,13 @@ CSS;
 					<td>
 						<?php
 						if ( ! empty( $data['available'] ) ) {
+							$stored_count = count( (array) ( $data['reviews'] ?? array() ) );
 							printf(
-								/* translators: 1: rating, 2: review count */
-								esc_html__( '%1$s ★ · %2$s Bewertungen', 'shyft-dashboard' ),
+								/* translators: 1: rating, 2: total Google reviews, 3: stored reviews in cache */
+								esc_html__( '%1$s ★ · %2$s Bewertungen bei Google · %3$s im Cache', 'shyft-dashboard' ),
 								esc_html( number_format_i18n( (float) ( $data['rating'] ?? 0 ), 1 ) ),
-								esc_html( number_format_i18n( (int) ( $data['total'] ?? 0 ) ) )
+								esc_html( number_format_i18n( (int) ( $data['total'] ?? 0 ) ) ),
+								esc_html( number_format_i18n( $stored_count ) )
 							);
 						} elseif ( Shyft_Dashboard_Google_Reviews::is_configured() ) {
 							esc_html_e( 'Noch keine Daten – bitte synchronisieren.', 'shyft-dashboard' );

@@ -20,7 +20,8 @@ final class Shyft_Dashboard_Google_Reviews {
 	public const OPTION_LAST_SEEN = 'shyft_dashboard_google_reviews_last_seen_at';
 	public const CRON_HOOK       = 'shyft_dashboard_sync_google_reviews';
 	public const MAX_STORED_REVIEWS = 10;
-	public const DASHBOARD_REVIEW_LIMIT = 5;
+	public const DISPLAY_REVIEW_LIMIT = 10;
+	public const PLACES_API_REVIEW_LIMIT = 5;
 
 	private const API_TIMEOUT = 20;
 
@@ -168,16 +169,16 @@ final class Shyft_Dashboard_Google_Reviews {
 	}
 
 	/**
-	 * @return array<string, mixed>
+	 * @return array{ok: bool, error?: string, result?: array<string, mixed>, reviews_raw?: list<array<string, mixed>>}
 	 */
-	private static function fetch_from_google( string $place_id, string $api_key ): array {
+	private static function request_place_details( string $place_id, string $api_key, string $reviews_sort ): array {
 		$url = add_query_arg(
 			array(
 				'place_id'     => $place_id,
 				'fields'       => 'rating,user_ratings_total,reviews,name,url,website,formatted_address,address_components,geometry',
 				'key'          => $api_key,
 				'language'     => self::get_api_language(),
-				'reviews_sort' => 'newest',
+				'reviews_sort' => $reviews_sort,
 			),
 			'https://maps.googleapis.com/maps/api/place/details/json'
 		);
@@ -190,19 +191,23 @@ final class Shyft_Dashboard_Google_Reviews {
 		);
 
 		if ( is_wp_error( $response ) ) {
-			return self::empty_payload( $response->get_error_message() );
+			return array(
+				'ok'    => false,
+				'error' => $response->get_error_message(),
+			);
 		}
 
 		$code = (int) wp_remote_retrieve_response_code( $response );
 		$body = json_decode( (string) wp_remote_retrieve_body( $response ), true );
 
 		if ( 200 !== $code || ! is_array( $body ) ) {
-			return self::empty_payload(
-				sprintf(
+			return array(
+				'ok'    => false,
+				'error' => sprintf(
 					/* translators: %d: HTTP status code */
 					__( 'Google API Fehler (HTTP %d).', 'shyft-dashboard' ),
 					$code
-				)
+				),
 			);
 		}
 
@@ -211,35 +216,102 @@ final class Shyft_Dashboard_Google_Reviews {
 		if ( 'OK' !== $status ) {
 			$message = (string) ( $body['error_message'] ?? $status );
 
-			return self::empty_payload( $message ?: $status );
+			return array(
+				'ok'    => false,
+				'error' => $message ?: $status,
+			);
 		}
 
 		$result = $body['result'] ?? array();
 
 		if ( ! is_array( $result ) ) {
-			return self::empty_payload( 'invalid_response' );
-		}
-
-		$reviews = array();
-
-		foreach ( (array) ( $result['reviews'] ?? array() ) as $review ) {
-			if ( ! is_array( $review ) ) {
-				continue;
-			}
-
-			$reviews[] = array(
-				'author'        => (string) ( $review['author_name'] ?? '' ),
-				'rating'        => (int) ( $review['rating'] ?? 0 ),
-				'text'          => (string) ( $review['text'] ?? '' ),
-				'time'          => (int) ( $review['time'] ?? 0 ),
-				'relative_time' => (string) ( $review['relative_time_description'] ?? '' ),
-				'photo'         => esc_url_raw( (string) ( $review['profile_photo_url'] ?? '' ) ),
+			return array(
+				'ok'    => false,
+				'error' => 'invalid_response',
 			);
+		}
 
-			if ( count( $reviews ) >= self::MAX_STORED_REVIEWS ) {
-				break;
+		return array(
+			'ok'          => true,
+			'result'      => $result,
+			'reviews_raw' => array_values( (array) ( $result['reviews'] ?? array() ) ),
+		);
+	}
+
+	/**
+	 * @param list<array<string, mixed>> ...$lists Raw Google review rows.
+	 * @return list<array<string, mixed>>
+	 */
+	private static function merge_api_reviews( array ...$lists ): array {
+		$merged = array();
+		$seen   = array();
+
+		foreach ( $lists as $list ) {
+			foreach ( $list as $review ) {
+				if ( ! is_array( $review ) ) {
+					continue;
+				}
+
+				$fingerprint = self::review_fingerprint( $review );
+
+				if ( isset( $seen[ $fingerprint ] ) ) {
+					continue;
+				}
+
+				$seen[ $fingerprint ] = true;
+				$merged[]             = self::normalize_review_row( $review );
+
+				if ( count( $merged ) >= self::MAX_STORED_REVIEWS ) {
+					return $merged;
+				}
 			}
 		}
+
+		return $merged;
+	}
+
+	/**
+	 * @param array<string, mixed> $review Raw or stored review row.
+	 */
+	private static function review_fingerprint( array $review ): string {
+		$author = strtolower( trim( (string) ( $review['author_name'] ?? $review['author'] ?? '' ) ) );
+		$time   = (int) ( $review['time'] ?? 0 );
+
+		return md5( $author . '|' . (string) $time );
+	}
+
+	/**
+	 * @param array<string, mixed> $review Google Places API review row.
+	 * @return array<string, mixed>
+	 */
+	private static function normalize_review_row( array $review ): array {
+		return array(
+			'author'        => (string) ( $review['author_name'] ?? $review['author'] ?? '' ),
+			'rating'        => (int) ( $review['rating'] ?? 0 ),
+			'text'          => (string) ( $review['text'] ?? '' ),
+			'time'          => (int) ( $review['time'] ?? 0 ),
+			'relative_time' => (string) ( $review['relative_time_description'] ?? $review['relative_time'] ?? '' ),
+			'photo'         => esc_url_raw( (string) ( $review['profile_photo_url'] ?? $review['photo'] ?? '' ) ),
+		);
+	}
+
+	/**
+	 * @return array<string, mixed>
+	 */
+	private static function fetch_from_google( string $place_id, string $api_key ): array {
+		$newest = self::request_place_details( $place_id, $api_key, 'newest' );
+
+		if ( empty( $newest['ok'] ) || ! is_array( $newest['result'] ?? null ) ) {
+			return self::empty_payload( (string) ( $newest['error'] ?? 'invalid_response' ) );
+		}
+
+		$relevant = self::request_place_details( $place_id, $api_key, 'most_relevant' );
+		$reviews  = self::merge_api_reviews(
+			(array) ( $newest['reviews_raw'] ?? array() ),
+			! empty( $relevant['ok'] ) ? (array) ( $relevant['reviews_raw'] ?? array() ) : array()
+		);
+
+		$result = $newest['result'];
 
 		return array(
 			'available'        => true,
@@ -396,7 +468,7 @@ final class Shyft_Dashboard_Google_Reviews {
 		return array_slice(
 			(array) ( $data['reviews'] ?? array() ),
 			0,
-			self::DASHBOARD_REVIEW_LIMIT
+			self::DISPLAY_REVIEW_LIMIT
 		);
 	}
 

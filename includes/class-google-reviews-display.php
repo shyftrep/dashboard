@@ -54,18 +54,16 @@ final class Shyft_Dashboard_Google_Reviews_Display {
 	public static function render_shortcode( $atts = array() ): string {
 		$atts = shortcode_atts(
 			array(
-				'limit'       => '5',
-				'slider'      => '1',
-				'schema'      => '1',
-				'header'      => '1',
-				'write_button'=> '1',
+				'slider'       => '1',
+				'schema'       => '1',
+				'header'       => '1',
+				'write_button' => '1',
 			),
 			is_array( $atts ) ? $atts : array(),
 			'clicklabs_reviews'
 		);
 
 		$args = array(
-			'limit'        => max( 1, min( 10, (int) $atts['limit'] ) ),
 			'slider'       => '1' === $atts['slider'] || 'true' === $atts['slider'],
 			'schema'       => '1' === $atts['schema'] || 'true' === $atts['schema'],
 			'header'       => '1' === $atts['header'] || 'true' === $atts['header'],
@@ -84,7 +82,6 @@ final class Shyft_Dashboard_Google_Reviews_Display {
 		$args = wp_parse_args(
 			$args,
 			array(
-				'limit'        => 5,
 				'slider'       => true,
 				'schema'       => true,
 				'header'       => true,
@@ -100,7 +97,11 @@ final class Shyft_Dashboard_Google_Reviews_Display {
 
 		self::enqueue_assets();
 
-		$reviews = array_slice( (array) ( $data['reviews'] ?? array() ), 0, (int) $args['limit'] );
+		$reviews = array_slice(
+			(array) ( $data['reviews'] ?? array() ),
+			0,
+			Shyft_Dashboard_Google_Reviews::DISPLAY_REVIEW_LIMIT
+		);
 
 		if ( empty( $reviews ) ) {
 			return '';

@@ -51,17 +51,6 @@ final class Shyft_Dashboard_Elementor_Reviews_Widget extends \Elementor\Widget_B
 		);
 
 		$this->add_control(
-			'limit',
-			array(
-				'label'   => __( 'Anzahl Bewertungen', 'shyft-dashboard' ),
-				'type'    => \Elementor\Controls_Manager::NUMBER,
-				'default' => 5,
-				'min'     => 1,
-				'max'     => 10,
-			)
-		);
-
-		$this->add_control(
 			'slider',
 			array(
 				'label'        => __( 'Slider', 'shyft-dashboard' ),
@@ -110,7 +99,6 @@ final class Shyft_Dashboard_Elementor_Reviews_Widget extends \Elementor\Widget_B
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in display class.
 		echo Shyft_Dashboard_Google_Reviews_Display::render(
 			array(
-				'limit'        => (int) ( $settings['limit'] ?? 5 ),
 				'slider'       => ( $settings['slider'] ?? 'yes' ) === 'yes',
 				'header'       => ( $settings['header'] ?? 'yes' ) === 'yes',
 				'write_button' => ( $settings['write_button'] ?? 'yes' ) === 'yes',
