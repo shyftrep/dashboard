@@ -31,6 +31,8 @@ require_once SHYFT_DASHBOARD_PATH . 'includes/class-elementor-reviews.php';
 require_once SHYFT_DASHBOARD_PATH . 'includes/class-elementor-offers.php';
 require_once SHYFT_DASHBOARD_PATH . 'includes/class-offers.php';
 require_once SHYFT_DASHBOARD_PATH . 'includes/class-offers-display.php';
+require_once SHYFT_DASHBOARD_PATH . 'includes/class-buttons.php';
+require_once SHYFT_DASHBOARD_PATH . 'includes/class-buttons-display.php';
 require_once SHYFT_DASHBOARD_PATH . 'includes/class-settings.php';
 require_once SHYFT_DASHBOARD_PATH . 'includes/class-updater.php';
 require_once SHYFT_DASHBOARD_PATH . 'includes/class-upgrade.php';
@@ -104,6 +106,8 @@ final class Shyft_Dashboard {
 		Shyft_Dashboard_Elementor_Offers::register();
 		Shyft_Dashboard_Offers::register();
 		Shyft_Dashboard_Offers_Display::register();
+		Shyft_Dashboard_Buttons::register();
+		Shyft_Dashboard_Buttons_Display::register();
 		Shyft_Dashboard_Settings::register();
 		Shyft_Dashboard_Updater::register();
 	}
@@ -118,6 +122,7 @@ final class Shyft_Dashboard {
 		Shyft_Dashboard_Upgrade::run();
 		Shyft_Dashboard_Google_Reviews::maybe_schedule_cron();
 		Shyft_Dashboard_Offers::ensure_capabilities();
+		Shyft_Dashboard_Buttons::ensure_capabilities();
 		update_option( Shyft_Dashboard_Upgrade::VERSION_OPTION, SHYFT_DASHBOARD_VERSION, false );
 		delete_option( Shyft_Dashboard_Upgrade::PENDING_OPTION );
 	}

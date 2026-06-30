@@ -4,7 +4,7 @@
  *
  * @package ShyftDashboard
  *
- * @var string $active_view Current view slug: overview|angebote.
+ * @var string $active_view Current view slug: overview|angebote|buttons.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -26,6 +26,14 @@ $active_view = $active_view ?? 'overview';
 			href="<?php echo esc_url( Shyft_Dashboard_Offers::get_dashboard_url() ); ?>"
 		>
 			<?php esc_html_e( 'Angebote', 'shyft-dashboard' ); ?>
+		</a>
+	<?php endif; ?>
+	<?php if ( Shyft_Dashboard_Buttons::can_manage() ) : ?>
+		<a
+			class="shyft-dashboard-nav__link<?php echo 'buttons' === $active_view ? ' is-active' : ''; ?>"
+			href="<?php echo esc_url( Shyft_Dashboard_Buttons::get_dashboard_url() ); ?>"
+		>
+			<?php esc_html_e( 'Buttons', 'shyft-dashboard' ); ?>
 		</a>
 	<?php endif; ?>
 </nav>

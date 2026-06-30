@@ -41,7 +41,8 @@ final class Shyft_Dashboard_Roles {
 			array(
 				'read'                => true,
 				'upload_files'        => true,
-				'shyft_manage_offers' => true,
+				'shyft_manage_offers'  => true,
+				'shyft_manage_buttons' => true,
 			)
 		);
 	}
