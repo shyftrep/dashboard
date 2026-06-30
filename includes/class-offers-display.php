@@ -19,7 +19,7 @@ final class Shyft_Dashboard_Offers_Display {
 	private static bool $assets_enqueued = false;
 
 	public static function register(): void {
-		add_action( 'init', array( self::class, 'register_shortcodes' ), 5 );
+		self::register_shortcodes();
 		add_action( 'wp_enqueue_scripts', array( self::class, 'register_assets' ) );
 	}
 

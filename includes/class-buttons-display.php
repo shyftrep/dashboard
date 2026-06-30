@@ -22,8 +22,9 @@ final class Shyft_Dashboard_Buttons_Display {
 	private static array $inline_styles_added = array();
 
 	public static function register(): void {
-		add_action( 'init', array( self::class, 'register_shortcodes' ), 5 );
+		self::register_shortcodes();
 		add_action( 'wp_enqueue_scripts', array( self::class, 'register_assets' ) );
+		add_filter( 'elementor/widget/render_content', array( self::class, 'filter_elementor_widget_content' ), 10, 2 );
 	}
 
 	public static function register_shortcodes(): void {
@@ -92,6 +93,30 @@ final class Shyft_Dashboard_Buttons_Display {
 		<?php
 
 		return (string) ob_get_clean();
+	}
+
+	/**
+	 * Runs shortcodes inside Elementor HTML/text widgets.
+	 *
+	 * @param string              $content Widget HTML.
+	 * @param \Elementor\Widget_Base $widget Elementor widget instance.
+	 */
+	public static function filter_elementor_widget_content( string $content, $widget ): string {
+		if ( ! is_object( $widget ) || ! method_exists( $widget, 'get_name' ) ) {
+			return $content;
+		}
+
+		$name = (string) $widget->get_name();
+
+		if ( ! in_array( $name, array( 'html', 'text-editor', 'shortcode' ), true ) ) {
+			return $content;
+		}
+
+		if ( 'shortcode' === $name ) {
+			return $content;
+		}
+
+		return do_shortcode( $content );
 	}
 
 	private static function enqueue_assets( int $button_id, string $custom_css ): void {

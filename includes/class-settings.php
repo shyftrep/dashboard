@@ -734,6 +734,7 @@ final class Shyft_Dashboard_Settings {
 		<p>
 			<?php esc_html_e( 'Shortcode:', 'shyft-dashboard' ); ?>
 			<code>[clicklabs_button id="1"]</code>
+			<?php esc_html_e( '· Elementor-Widget „Kauf-Button (clicklabs)“', 'shyft-dashboard' ); ?>
 		</p>
 		<?php
 	}

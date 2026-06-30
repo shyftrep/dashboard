@@ -89,6 +89,7 @@ $edit_scope_class  = $is_editing ? (string) ( $edit_button['scope_class'] ?? '' 
 			<p class="shyft-dashboard__subtitle">
 				<?php esc_html_e( 'Beispiel:', 'shyft-dashboard' ); ?>
 				<code>[clicklabs_button id="1"]</code>
+				<?php esc_html_e( '· Elementor-Widget „Kauf-Button (clicklabs)“', 'shyft-dashboard' ); ?>
 			</p>
 		</div>
 

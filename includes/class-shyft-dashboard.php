@@ -29,6 +29,7 @@ require_once SHYFT_DASHBOARD_PATH . 'includes/class-google-reviews.php';
 require_once SHYFT_DASHBOARD_PATH . 'includes/class-google-reviews-display.php';
 require_once SHYFT_DASHBOARD_PATH . 'includes/class-elementor-reviews.php';
 require_once SHYFT_DASHBOARD_PATH . 'includes/class-elementor-offers.php';
+require_once SHYFT_DASHBOARD_PATH . 'includes/class-elementor-buttons.php';
 require_once SHYFT_DASHBOARD_PATH . 'includes/class-offers.php';
 require_once SHYFT_DASHBOARD_PATH . 'includes/class-offers-display.php';
 require_once SHYFT_DASHBOARD_PATH . 'includes/class-buttons.php';
@@ -104,6 +105,7 @@ final class Shyft_Dashboard {
 		Shyft_Dashboard_Google_Reviews_Display::register();
 		Shyft_Dashboard_Elementor_Reviews::register();
 		Shyft_Dashboard_Elementor_Offers::register();
+		Shyft_Dashboard_Elementor_Buttons::register();
 		Shyft_Dashboard_Offers::register();
 		Shyft_Dashboard_Offers_Display::register();
 		Shyft_Dashboard_Buttons::register();
