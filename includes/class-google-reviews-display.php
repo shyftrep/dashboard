@@ -23,6 +23,7 @@ final class Shyft_Dashboard_Google_Reviews_Display {
 	 */
 	public static function register(): void {
 		add_shortcode( 'clicklabs_reviews', array( self::class, 'render_shortcode' ) );
+		add_shortcode( 'clicklabs_reviews_badge', array( self::class, 'render_badge_shortcode' ) );
 		add_action( 'wp_enqueue_scripts', array( self::class, 'register_assets' ) );
 	}
 
@@ -71,6 +72,99 @@ final class Shyft_Dashboard_Google_Reviews_Display {
 		);
 
 		return self::render( $args );
+	}
+
+	/**
+	 * Shortcode [clicklabs_reviews_badge].
+	 *
+	 * @param array<string, string>|string $atts Shortcode attributes.
+	 */
+	public static function render_badge_shortcode( $atts = array() ): string {
+		$atts = shortcode_atts(
+			array(
+				'text' => '',
+				'link' => '0',
+			),
+			is_array( $atts ) ? $atts : array(),
+			'clicklabs_reviews_badge'
+		);
+
+		return self::render_badge(
+			array(
+				'extra_text' => $atts['text'],
+				'link'       => '1' === $atts['link'] || 'true' === $atts['link'],
+			)
+		);
+	}
+
+	/**
+	 * Renders the compact Google rating badge (no review cards).
+	 *
+	 * @param array<string, mixed> $args Display options.
+	 */
+	public static function render_badge( array $args = array() ): string {
+		$args = wp_parse_args(
+			$args,
+			array(
+				'extra_text' => '',
+				'link'       => false,
+			)
+		);
+
+		$data = Shyft_Dashboard_Google_Reviews::get_stored_data();
+
+		if ( empty( $data['available'] ) ) {
+			return '';
+		}
+
+		$rating = (float) ( $data['rating'] ?? 0 );
+		$total  = (int) ( $data['total'] ?? 0 );
+
+		if ( $rating <= 0 || $total <= 0 ) {
+			return '';
+		}
+
+		self::enqueue_badge_assets();
+
+		$extra_text = trim( (string) $args['extra_text'] );
+		$link_url   = '';
+
+		if ( ! empty( $args['link'] ) ) {
+			$link_url = (string) ( $data['place_url'] ?? '' );
+
+			if ( '' === $link_url ) {
+				$link_url = Shyft_Dashboard_Google_Reviews::get_write_review_url();
+			}
+		}
+
+		$summary_label = self::format_rating_label( $rating, $total );
+
+		ob_start();
+		?>
+		<div class="shyft-reviews-badge">
+			<?php if ( '' !== $link_url ) : ?>
+				<a
+					class="shyft-reviews-badge__summary shyft-reviews-badge__summary--link"
+					href="<?php echo esc_url( $link_url ); ?>"
+					target="_blank"
+					rel="noopener noreferrer"
+					aria-label="<?php echo esc_attr( $summary_label ); ?>"
+				>
+					<?php self::print_badge_summary_markup( $rating, $total ); ?>
+				</a>
+			<?php else : ?>
+				<div class="shyft-reviews-badge__summary" aria-label="<?php echo esc_attr( $summary_label ); ?>">
+					<?php self::print_badge_summary_markup( $rating, $total ); ?>
+				</div>
+			<?php endif; ?>
+
+			<?php if ( '' !== $extra_text ) : ?>
+				<p class="shyft-reviews-badge__extra"><?php echo esc_html( $extra_text ); ?></p>
+			<?php endif; ?>
+		</div>
+		<?php
+
+		return (string) ob_get_clean();
 	}
 
 	/**
@@ -295,6 +389,11 @@ final class Shyft_Dashboard_Google_Reviews_Display {
 	}
 
 	private static function enqueue_assets(): void {
+		self::enqueue_badge_assets();
+		wp_enqueue_script( 'shyft-google-reviews' );
+	}
+
+	private static function enqueue_badge_assets(): void {
 		if ( self::$assets_enqueued ) {
 			return;
 		}
@@ -307,8 +406,37 @@ final class Shyft_Dashboard_Google_Reviews_Display {
 			wp_add_inline_style( 'shyft-google-reviews', $custom_css );
 		}
 
-		wp_enqueue_script( 'shyft-google-reviews' );
 		self::$assets_enqueued = true;
+	}
+
+	private static function print_badge_summary_markup( float $rating, int $total ): void {
+		?>
+		<span class="shyft-reviews-badge__icon" aria-hidden="true"><?php self::print_google_icon_svg(); ?></span>
+		<span class="shyft-reviews-badge__stars" aria-hidden="true"><?php echo esc_html( self::render_stars_text( $rating ) ); ?></span>
+		<span class="shyft-reviews-badge__rating"><?php echo esc_html( number_format_i18n( $rating, 1 ) ); ?></span>
+		<span class="shyft-reviews-badge__sep" aria-hidden="true">|</span>
+		<span class="shyft-reviews-badge__count">
+			<?php
+			printf(
+				/* translators: %s: number of Google reviews */
+				esc_html( _n( '%s Bewertung', '%s Bewertungen', $total, 'shyft-dashboard' ) ),
+				esc_html( number_format_i18n( $total ) )
+			);
+			?>
+		</span>
+		<?php
+	}
+
+	private static function print_google_icon_svg(): void {
+		?>
+		<svg class="shyft-reviews-badge__google" viewBox="0 0 24 24" width="20" height="20" role="img" focusable="false">
+			<title><?php esc_html_e( 'Google', 'shyft-dashboard' ); ?></title>
+			<path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+			<path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+			<path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+			<path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+		</svg>
+		<?php
 	}
 
 	private static function render_stars_text( float $rating ): string {

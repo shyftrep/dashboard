@@ -885,9 +885,14 @@ CSS;
 		<p><?php esc_html_e( 'Bewertungen werden per Cron alle 12 Stunden von Google geladen und lokal gespeichert. Die Website zeigt nur die gespeicherten Daten – keine API-Aufrufe beim Seitenaufruf.', 'shyft-dashboard' ); ?></p>
 		<p><?php esc_html_e( 'Hinweis: Die Google Places API liefert pro Abruf höchstens 5 Bewertungen. Das Plugin holt „neueste“ und „relevanteste“ Bewertungen und zeigt bis zu 10 im Slider an.', 'shyft-dashboard' ); ?></p>
 		<p>
-			<?php esc_html_e( 'Shortcode:', 'shyft-dashboard' ); ?>
+			<?php esc_html_e( 'Shortcodes:', 'shyft-dashboard' ); ?>
 			<code>[clicklabs_reviews]</code>
-			<?php esc_html_e( '· Elementor-Widget „Google Reviews (clicklabs)“', 'shyft-dashboard' ); ?>
+			<?php esc_html_e( '·', 'shyft-dashboard' ); ?>
+			<code>[clicklabs_reviews_badge text="+450 zufriedene Kunden"]</code>
+		</p>
+		<p>
+			<?php esc_html_e( 'Elementor:', 'shyft-dashboard' ); ?>
+			<?php esc_html_e( '„Google Reviews (clicklabs)“ · „Google Bewertungs-Badge (clicklabs)“', 'shyft-dashboard' ); ?>
 		</p>
 		<?php
 	}

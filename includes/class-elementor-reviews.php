@@ -32,7 +32,9 @@ final class Shyft_Dashboard_Elementor_Reviews {
 		}
 
 		require_once SHYFT_DASHBOARD_PATH . 'includes/elementor/class-widget-reviews.php';
+		require_once SHYFT_DASHBOARD_PATH . 'includes/elementor/class-widget-reviews-badge.php';
 
 		$widgets_manager->register( new Shyft_Dashboard_Elementor_Reviews_Widget() );
+		$widgets_manager->register( new Shyft_Dashboard_Elementor_Reviews_Badge_Widget() );
 	}
 }

@@ -4,6 +4,71 @@
  */
 
 /* ======================================
+   COMPACT BADGE
+   ====================================== */
+
+.shyft-reviews-badge {
+	display: inline-flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 10px 14px;
+	max-width: 100%;
+	line-height: 1.2;
+}
+
+.shyft-reviews-badge__summary {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+	margin: 0;
+	color: #172a39;
+	text-decoration: none;
+}
+
+.shyft-reviews-badge__summary--link:hover {
+	opacity: 0.85;
+}
+
+.shyft-reviews-badge__icon {
+	display: inline-flex;
+	align-items: center;
+	flex-shrink: 0;
+	line-height: 0;
+}
+
+.shyft-reviews-badge__google {
+	display: block;
+	width: 20px;
+	height: 20px;
+}
+
+.shyft-reviews-badge__stars {
+	color: #fbbc04;
+	font-size: 14px;
+	font-weight: 700;
+	letter-spacing: 1px;
+	line-height: 1;
+}
+
+.shyft-reviews-badge__rating,
+.shyft-reviews-badge__count,
+.shyft-reviews-badge__extra {
+	margin: 0;
+	font-size: 15px;
+	font-weight: 700;
+	color: #172a39;
+}
+
+.shyft-reviews-badge__sep {
+	color: #172a39;
+	font-size: 15px;
+	font-weight: 400;
+	opacity: 0.35;
+	line-height: 1;
+}
+
+/* ======================================
    SHYFT REVIEWS
    CLEAN PREMIUM 2026
    ====================================== */
