@@ -68,6 +68,20 @@
 	line-height: 1;
 }
 
+@media (max-width: 767px) {
+	.shyft-reviews-badge {
+		display: flex;
+		width: 100%;
+		justify-content: center;
+		align-items: center;
+		text-align: center;
+	}
+
+	.shyft-reviews-badge__summary {
+		justify-content: center;
+	}
+}
+
 /* ======================================
    SHYFT REVIEWS
    CLEAN PREMIUM 2026
