@@ -55,6 +55,7 @@ $is_editing        = is_array( $edit_offer );
 	<header class="shyft-dashboard__header">
 		<div class="shyft-dashboard__header-bar">
 			<div class="shyft-dashboard__brand">
+				<?php include SHYFT_DASHBOARD_PATH . 'templates/partials/dashboard-home-link.php'; ?>
 				<?php include SHYFT_DASHBOARD_PATH . 'templates/partials/brand-logo.php'; ?>
 			</div>
 		</div>
